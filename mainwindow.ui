@@ -22,21 +22,35 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="mainGridLayout">
     <item row="1" column="7">
-     <widget class="QPushButton" name="startPushButton">
+     <widget class="QPushButton" name="pushButtonStart">
       <property name="text">
        <string>开始调制</string>
       </property>
      </widget>
     </item>
+    <item row="2" column="7">
+     <widget class="QPushButton" name="pushButtonExit">
+      <property name="text">
+       <string>退出</string>
+      </property>
+     </widget>
+    </item>
     <item row="1" column="6">
-     <widget class="QPushButton" name="connectPushButton">
+     <widget class="QPushButton" name="pushButtonConnect">
       <property name="text">
        <string>连接下位机</string>
       </property>
      </widget>
     </item>
+    <item row="2" column="6">
+     <widget class="QPushButton" name="pushButtonSend">
+      <property name="text">
+       <string>发送波形</string>
+      </property>
+     </widget>
+    </item>
     <item row="0" column="6" colspan="2">
-     <widget class="QGroupBox" name="statusBox">
+     <widget class="QGroupBox" name="groupBoxStatus">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -45,14 +59,14 @@
       </property>
       <layout class="QFormLayout" name="statusFormLayout">
        <item row="0" column="0">
-        <widget class="QLabel" name="connectStatusLabel">
+        <widget class="QLabel" name="labelConnectStatus">
          <property name="text">
           <string>下位机连接状态：</string>
          </property>
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QLineEdit" name="connectStatusLineEdit">
+        <widget class="QLineEdit" name="lineEditConnectStatus">
          <property name="text">
           <string>未连接</string>
          </property>
@@ -62,14 +76,14 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="frequencyStatusLabel">
+        <widget class="QLabel" name="labelFrequencyStatus">
          <property name="text">
           <string>调制频率(单位时间)：</string>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="frequencyStatusLineEdit">
+        <widget class="QLineEdit" name="lineEditFrequencyStatus">
          <property name="text">
           <string>N/A</string>
          </property>
@@ -79,14 +93,14 @@
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="voltageStatusLabel">
+        <widget class="QLabel" name="labelVoltageStatus">
          <property name="text">
           <string>电压量化位数：</string>
          </property>
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QLineEdit" name="voltageStatusLineEdit">
+        <widget class="QLineEdit" name="lineEditVoltageStatus">
          <property name="text">
           <string>N/A</string>
          </property>
@@ -98,36 +112,8 @@
       </layout>
      </widget>
     </item>
-    <item row="3" column="6">
-     <widget class="QPushButton" name="sendPushButton">
-      <property name="text">
-       <string>发送波形</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="6">
-     <widget class="QPushButton" name="importPushButton">
-      <property name="text">
-       <string>导入波形</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="7">
-     <widget class="QPushButton" name="outportPushButton">
-      <property name="text">
-       <string>导出波形</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="7">
-     <widget class="QPushButton" name="exitPushButton">
-      <property name="text">
-       <string>退出</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="2" rowspan="4" colspan="4">
-     <widget class="QGroupBox" name="waveGroupBox">
+    <item row="0" column="2" rowspan="3" colspan="4">
+     <widget class="QGroupBox" name="groupBoxWave">
       <property name="layoutDirection">
        <enum>Qt::LeftToRight</enum>
       </property>
@@ -136,14 +122,14 @@
       </property>
       <layout class="QFormLayout" name="waveFormLayout">
        <item row="0" column="0">
-        <widget class="QLabel" name="waveModulatingLabel">
+        <widget class="QLabel" name="labelModulatingWave">
          <property name="text">
           <string>正在调制波形：</string>
          </property>
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QWidget" name="waveModulatingWidget" native="true">
+        <widget class="QWidget" name="widgetModulatingWave" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -156,14 +142,14 @@
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="waveEditingLabel">
+        <widget class="QLabel" name="labelEditingWave">
          <property name="text">
           <string>正在编辑波形：</string>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QWidget" name="waveEditingWidget" native="true">
+        <widget class="QWidget" name="widgetEditingWave" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -176,7 +162,7 @@
         </widget>
        </item>
        <item row="2" column="0" colspan="2">
-        <widget class="QPushButton" name="waveEditPushButton">
+        <widget class="QPushButton" name="pushButtonEditWave">
          <property name="text">
           <string>编辑波形</string>
          </property>
@@ -196,20 +182,73 @@
      <height>26</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuMenu">
+    <property name="title">
+     <string>菜单</string>
+    </property>
+    <addaction name="actionOpenWave"/>
+    <addaction name="actionEditWave"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuAbout">
+    <property name="title">
+     <string>关于</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <addaction name="menuMenu"/>
+   <addaction name="menuAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionOpenWave">
+   <property name="text">
+    <string>打开波形文件</string>
+   </property>
+  </action>
+  <action name="actionEditWave">
+   <property name="text">
+    <string>波形编辑器</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>关于</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>退出</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
   <connection>
-   <sender>exitPushButton</sender>
+   <sender>pushButtonExit</sender>
    <signal>clicked()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>702</x>
-     <y>515</y>
+     <x>790</x>
+     <y>565</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>399</x>
+     <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionExit</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>close()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
     </hint>
     <hint type="destinationlabel">
      <x>399</x>
