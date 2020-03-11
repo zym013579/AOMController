@@ -2,6 +2,8 @@
 #define WINDOWWAVEDESIGNER_H
 
 #include <QMainWindow>
+#include <QCloseEvent>
+#include <QMessageBox>
 
 namespace Ui {
 class WindowWaveDesigner;
@@ -17,6 +19,8 @@ public:
 
 private:
     Ui::WindowWaveDesigner *ui;
+
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif // WINDOWWAVEDESIGNER_H
