@@ -25,4 +25,7 @@ void MainWindow::on_actionAbout_triggered()
     DialogAbout *wAbout = new DialogAbout;
     wAbout->exec();
     return;
+    QVector<double> a(100);
+    QVector<double> b(100);
+    ui->widgetModulatingWave->graph(1)->setData(a, b);
 }

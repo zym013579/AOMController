@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -19,11 +19,13 @@ SOURCES += \
     dialogabout.cpp \
     main.cpp \
     mainwindow.cpp \
+    qcustomplot.cpp \
     windowwavedesigner.cpp
 
 HEADERS += \
     dialogabout.h \
     mainwindow.h \
+    qcustomplot.h \
     windowwavedesigner.h
 
 FORMS += \

@@ -156,7 +156,7 @@
       <property name="title">
        <string>波形编辑</string>
       </property>
-      <widget class="QWidget" name="widgetWave" native="true">
+      <widget class="QCustomPlot" name="widgetWave" native="true">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -243,6 +243,14 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QCustomPlot</class>
+   <extends>QWidget</extends>
+   <header location="global">qcustomplot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>

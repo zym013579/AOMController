@@ -5,6 +5,8 @@
 #include "windowwavedesigner.h"
 #include "dialogabout.h"
 
+#include "qcustomplot.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE

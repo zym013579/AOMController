@@ -129,7 +129,7 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QWidget" name="widgetModulatingWave" native="true">
+        <widget class="QCustomPlot" name="widgetModulatingWave" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -149,7 +149,7 @@
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QWidget" name="widgetEditingWave" native="true">
+        <widget class="QCustomPlot" name="widgetEditingWave" native="true">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
            <horstretch>0</horstretch>
@@ -222,6 +222,14 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QCustomPlot</class>
+   <extends>QWidget</extends>
+   <header location="global">qcustomplot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections>
   <connection>
