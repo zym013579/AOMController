@@ -57,7 +57,7 @@
       <property name="title">
        <string>状态</string>
       </property>
-      <layout class="QFormLayout" name="statusFormLayout">
+      <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0">
         <widget class="QLabel" name="labelConnectStatus">
          <property name="text">
@@ -75,13 +75,6 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="labelFrequencyStatus">
-         <property name="text">
-          <string>调制频率(单位时间)：</string>
-         </property>
-        </widget>
-       </item>
        <item row="1" column="1">
         <widget class="QLineEdit" name="lineEditFrequencyStatus">
          <property name="text">
@@ -89,6 +82,13 @@
          </property>
          <property name="readOnly">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="labelFrequencyStatus">
+         <property name="text">
+          <string>调制频率(单位时间)：</string>
          </property>
         </widget>
        </item>
@@ -120,7 +120,7 @@
       <property name="title">
        <string>波形预览</string>
       </property>
-      <layout class="QFormLayout" name="waveFormLayout">
+      <layout class="QGridLayout" name="gridLayout" columnstretch="2,5">
        <item row="0" column="0">
         <widget class="QLabel" name="labelModulatingWave">
          <property name="text">
@@ -128,18 +128,8 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="1">
-        <widget class="QCustomPlot" name="widgetModulatingWave" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-        </widget>
+       <item row="1" column="1">
+        <widget class="QCustomPlot" name="widgetEditingWave" native="true"/>
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="labelEditingWave">
@@ -148,18 +138,8 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QCustomPlot" name="widgetEditingWave" native="true">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="layoutDirection">
-          <enum>Qt::LeftToRight</enum>
-         </property>
-        </widget>
+       <item row="0" column="1">
+        <widget class="QCustomPlot" name="widgetModulatingWave" native="true"/>
        </item>
        <item row="2" column="0" colspan="2">
         <widget class="QPushButton" name="pushButtonEditWave">

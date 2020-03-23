@@ -5,6 +5,8 @@
 #include <QCloseEvent>
 #include <QMessageBox>
 
+#include "qcustomplot.h"
+
 namespace Ui {
 class WindowWaveDesigner;
 }
@@ -22,5 +24,8 @@ private:
 
     void closeEvent(QCloseEvent *event);
 };
+
+void init_waveGraph(QCustomPlot *target);
+void update_waveGraph(QCustomPlot *target, QVector<double> x, QVector<double> y);
 
 #endif // WINDOWWAVEDESIGNER_H

@@ -6,6 +6,7 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     ui(new Ui::WindowWaveDesigner)
 {
     ui->setupUi(this);
+    init_waveGraph(ui->widgetWave);
 }
 
 WindowWaveDesigner::~WindowWaveDesigner()
