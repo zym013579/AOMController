@@ -6,6 +6,7 @@
 #include "dialogabout.h"
 
 #include "qcustomplot.h"
+#include "wavedata.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -28,6 +29,9 @@ private slots:
 
     void on_pushButtonSend_clicked();
 
+    void on_pushButtonConnect_clicked();
+
+    void connect_success();
 private:
     Ui::MainWindow *ui;
 };

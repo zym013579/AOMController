@@ -26,6 +26,7 @@ HEADERS += \
     dialogabout.h \
     mainwindow.h \
     qcustomplot.h \
+    wavedata.h \
     windowwavedesigner.h
 
 FORMS += \
