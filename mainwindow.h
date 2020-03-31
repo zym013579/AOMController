@@ -5,8 +5,8 @@
 #include "windowwavedesigner.h"
 #include "dialogabout.h"
 
-#include "qcustomplot.h"
-#include "wavedata.h"
+//#include "qcustomplot.h"
+//#include "wavedata.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -21,6 +21,10 @@ public:
     ~MainWindow();
 
 private slots:
+    void update_myModuGraph();
+
+    void update_myEditGraph();
+
     void on_pushButtonEditWave_clicked();
 
     void on_actionAbout_triggered();
@@ -34,6 +38,8 @@ private slots:
     void connect_success();
 private:
     Ui::MainWindow *ui;
+
+    WaveData *modu, *edit;
 };
 
 void init_waveGraph(QCustomPlot *target);

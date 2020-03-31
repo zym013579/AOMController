@@ -1,21 +1,30 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-QVector<double> WaveData::EditX, WaveData::EditY, WaveData::ModuX, WaveData::ModuY;
+//QVector<double> WaveData::editX, WaveData::editY, WaveData::moduX, WaveData::moduY, WaveData::tempX, WaveData::tempY;
+//double WaveData::deltaX, WaveData::voltage;
+//WaveData WaveData;
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow),
+    modu(new WaveData),
+    edit(new WaveData)
 {
     ui->setupUi(this);
     init_waveGraph(ui->widgetModulatingWave);
     init_waveGraph(ui->widgetEditingWave);
-    WaveData::EditX.append(0);
-    WaveData::EditY.append(0);
+    //WaveData::tempX.append(0);
+    //WaveData::tempY.append(0);
+    //waveModuX[1]->append(2);
 }
 
 MainWindow::~MainWindow()
 {
+    modu->clear();
+    edit->clear();
+    delete modu;
+    delete edit;
     delete ui;
 }
 
@@ -56,6 +65,16 @@ void reset_waveGraphAxis(QCustomPlot *target)
     target->rescaleAxes();
 }
 
+void MainWindow::update_myModuGraph()
+{
+    update_waveGraph(ui->widgetModulatingWave, modu->x(), modu->y());
+}
+
+void MainWindow::update_myEditGraph()
+{
+    update_waveGraph(ui->widgetEditingWave, edit->x(), edit->y());
+}
+
 void MainWindow::on_pushButtonEditWave_clicked()
 {
     WindowWaveDesigner *wDesigner = new WindowWaveDesigner;
@@ -71,13 +90,12 @@ void MainWindow::on_actionAbout_triggered()
 /*临时用作测试*/
 void MainWindow::on_pushButtonStart_clicked()
 {
-    WaveData::ModuX.clear();
-    WaveData::ModuY.clear();
-    for (int i = 0; i < 10; i++) {
-        WaveData::ModuX.append(i/1.0);
-        WaveData::ModuY.append(rand()%2);
+    modu->clear();
+    for (int i = 0; i < 10; i++)
+    {
+        modu->add(i/1.0, rand()%2);
     }
-    update_waveGraph(ui->widgetModulatingWave, WaveData::ModuX, WaveData::ModuY);
+    update_myModuGraph();
     //ui->widgetModulatingWave->setGeometry(5, 10, 800, 200);
 }
 
