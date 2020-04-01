@@ -8,6 +8,8 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    wDesigner(new WindowWaveDesigner),
+    wAbout(new DialogAbout),
     modu(new WaveData),
     edit(new WaveData)
 {
@@ -17,6 +19,8 @@ MainWindow::MainWindow(QWidget *parent) :
     //WaveData::tempX.append(0);
     //WaveData::tempY.append(0);
     //waveModuX[1]->append(2);
+    //WindowWaveDesigner *wDesigner = new WindowWaveDesigner;
+    connect(wDesigner, SIGNAL(send_waveData(WaveData*)), this, SLOT(recieve_waveData(WaveData*)));
 }
 
 MainWindow::~MainWindow()
@@ -25,9 +29,12 @@ MainWindow::~MainWindow()
     edit->clear();
     delete modu;
     delete edit;
+    delete wAbout;
+    delete wDesigner;
     delete ui;
 }
 
+/*连接成功执行*/
 void MainWindow::connect_success()
 {
     ui->pushButtonStart->setEnabled(true);
@@ -35,20 +42,18 @@ void MainWindow::connect_success()
     ui->lineEditConnectStatus->setText("已连接，未调制");
 }
 
-/*
-初始化图形界面，包括颜色等设置
-*/
+/* 初始化图形界面，包括颜色等全局设置
+目前仅包括纵轴范围*/
 void init_waveGraph(QCustomPlot *target)
 {
     target->clearGraphs();
     target->addGraph();
-    target->yAxis->setRange(0, 1);
+    target->yAxis->setRange(-0.2, 1.2);
+    target->graph()->setLineStyle(QCPGraph::LineStyle::lsStepLeft); //方波图形
     target->replot();
 }
 
-/*
-用x,y来更新图形
-*/
+/* 用x,y来更新target图形*/
 void update_waveGraph(QCustomPlot *target, QVector<double> x, QVector<double> y)
 {
     target->graph(0)->setData(x, y);
@@ -60,30 +65,48 @@ void update_waveGraph(QCustomPlot *target, QVector<double> x, QVector<double> y)
     target->replot();
 }
 
+/* 自动设置显示范围*/
 void reset_waveGraphAxis(QCustomPlot *target)
 {
-    target->rescaleAxes();
+    //target->rescaleAxes();
+    qDebug() << target->graph();
+    qDebug() << target->graph()->data()->end()->key;
+    target->xAxis->setRange(0, MAX(5, target->graph()->data()->end()->value));
+    target->replot();
 }
 
+/*更新调制图形*/
 void MainWindow::update_myModuGraph()
 {
+    ui->widgetModulatingWave->xAxis->setRange(0, modu->x_at(modu->count()-1));
     update_waveGraph(ui->widgetModulatingWave, modu->x(), modu->y());
+    //reset_waveGraphAxis(ui->widgetModulatingWave);
 }
 
+/*更新编辑图形*/
 void MainWindow::update_myEditGraph()
 {
+    ui->widgetEditingWave->xAxis->setRange(0, edit->x_at(edit->count()-1));
     update_waveGraph(ui->widgetEditingWave, edit->x(), edit->y());
+    //reset_waveGraphAxis(ui->widgetEditingWave);
+}
+
+/*接收波形*/
+void MainWindow::recieve_waveData(WaveData *data)
+{
+    *edit = *data;
+    update_myEditGraph();
 }
 
 void MainWindow::on_pushButtonEditWave_clicked()
 {
-    WindowWaveDesigner *wDesigner = new WindowWaveDesigner;
+    //WindowWaveDesigner *wDesigner = new WindowWaveDesigner;
     wDesigner->show();
 }
 
 void MainWindow::on_actionAbout_triggered()
 {
-    DialogAbout *wAbout = new DialogAbout;
+    //DialogAbout *wAbout = new DialogAbout;
     wAbout->exec();
 }
 

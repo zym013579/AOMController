@@ -25,6 +25,8 @@ private slots:
 
     void update_myEditGraph();
 
+    void recieve_waveData(WaveData *data);
+
     void on_pushButtonEditWave_clicked();
 
     void on_actionAbout_triggered();
@@ -38,6 +40,10 @@ private slots:
     void connect_success();
 private:
     Ui::MainWindow *ui;
+
+    WindowWaveDesigner *wDesigner;
+
+    DialogAbout *wAbout;
 
     WaveData *modu, *edit;
 };

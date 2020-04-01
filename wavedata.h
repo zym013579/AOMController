@@ -51,6 +51,23 @@ public:
     {
         return dataY.at(i);
     }
+    void set(int i, double x, double y)
+    {
+        if (i >= dataX.size() || i >= dataY.size())
+            return;
+        dataX[i] = x;
+        dataY[i] = y;
+    }
+    void del(int i)
+    {
+        dataX.remove(i);
+        dataY.remove(i);
+    }
+    void insert(int i, double x, double y)
+    {
+        dataX.insert(i, x);
+        dataY.insert(i, y);
+    }
 protected:
     QVector<double> dataX, dataY;
 };

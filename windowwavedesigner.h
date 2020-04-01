@@ -1,6 +1,9 @@
 #ifndef WINDOWWAVEDESIGNER_H
 #define WINDOWWAVEDESIGNER_H
 
+#define MAX(a,b)  (((a)>(b))?(a):(b))
+#define MIN(a,b)  (((a)<(b))?(a):(b))
+
 #include <QMainWindow>
 #include <QCloseEvent>
 #include <QMessageBox>
@@ -18,15 +21,16 @@ class WindowWaveDesigner : public QMainWindow
 {
     Q_OBJECT
 
-public slots:
-    void refresh_selectPoint();
-
 public:
     explicit WindowWaveDesigner(QWidget *parent = nullptr);
     ~WindowWaveDesigner();
 
 private slots:
     void update_myGraph();
+
+    int if_pointClicked(QMouseEvent *event);
+
+    int witch_pointClicked();
 
     void choose_point(int i);
 
@@ -40,6 +44,8 @@ private slots:
 
     void on_pushButtonSave_clicked();
 
+    void on_pushButtonDelete_clicked();
+
 private:
     Ui::WindowWaveDesigner *ui;
 
@@ -47,9 +53,13 @@ private:
 
     bool mouseHasMoved;
 
-    int c_point;
+    int c_point, point_circleSize;
+
+    double disX, minDisX;
 
     void closeEvent(QCloseEvent *event);
+signals:
+    void send_waveData(WaveData *data);
 };
 
 void init_waveGraph(QCustomPlot *target);
