@@ -16,6 +16,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     init_waveGraph(ui->widgetModulatingWave);
     init_waveGraph(ui->widgetEditingWave);
+
+    emit modu->init();
+    emit edit->init();
     //WaveData::tempX.append(0);
     //WaveData::tempY.append(0);
     //waveModuX[1]->append(2);
@@ -65,7 +68,7 @@ void update_waveGraph(QCustomPlot *target, QVector<double> x, QVector<double> y)
     target->replot();
 }
 
-/* 自动设置显示范围*/
+/* 自动设置显示范围
 void reset_waveGraphAxis(QCustomPlot *target)
 {
     //target->rescaleAxes();
@@ -73,13 +76,13 @@ void reset_waveGraphAxis(QCustomPlot *target)
     qDebug() << target->graph()->data()->end()->key;
     target->xAxis->setRange(0, MAX(5, target->graph()->data()->end()->value));
     target->replot();
-}
+}*/
 
 /*更新调制图形*/
 void MainWindow::update_myModuGraph()
 {
     ui->widgetModulatingWave->xAxis->setRange(0, modu->x_at(modu->count()-1));
-    update_waveGraph(ui->widgetModulatingWave, modu->x(), modu->y());
+    update_waveGraph(ui->widgetModulatingWave, modu->x().toVector(), modu->y().toVector());
     //reset_waveGraphAxis(ui->widgetModulatingWave);
 }
 
@@ -87,14 +90,15 @@ void MainWindow::update_myModuGraph()
 void MainWindow::update_myEditGraph()
 {
     ui->widgetEditingWave->xAxis->setRange(0, edit->x_at(edit->count()-1));
-    update_waveGraph(ui->widgetEditingWave, edit->x(), edit->y());
+    update_waveGraph(ui->widgetEditingWave, edit->x().toVector(), edit->y().toVector());
     //reset_waveGraphAxis(ui->widgetEditingWave);
 }
 
 /*接收波形*/
 void MainWindow::recieve_waveData(WaveData *data)
 {
-    *edit = *data;
+    //*edit = *data;
+    edit->copyData(data);
     update_myEditGraph();
 }
 

@@ -4,6 +4,12 @@
 #define MAX(a,b)  (((a)>(b))?(a):(b))
 #define MIN(a,b)  (((a)<(b))?(a):(b))
 
+#define X_VAL (ui->widgetWave->xAxis->pixelToCoord(event->pos().x()))
+#define Y_VAL (ui->widgetWave->yAxis->pixelToCoord(event->pos().y()))
+
+#define X_RANGE ((ui->widgetWave->width()-34-15)/30.0*5/ui->widgetWave->xAxis->range().size()*11/point_circleSize)
+#define Y_RANGE ((ui->widgetWave->height()-14-24)/6.2/ui->widgetWave->yAxis->range().size()*11/point_circleSize)
+
 #include <QMainWindow>
 #include <QCloseEvent>
 #include <QMessageBox>
@@ -27,6 +33,14 @@ public:
 
 private slots:
     void update_myGraph();
+
+    void update_pointText();
+
+    void check_pointText();
+
+    void update_pointNumber();
+
+    void update_pointData();
 
     int if_pointClicked(QMouseEvent *event);
 
@@ -64,5 +78,6 @@ signals:
 
 void init_waveGraph(QCustomPlot *target);
 void update_waveGraph(QCustomPlot *target, QVector<double> x, QVector<double> y);
+double check_data(double input, double min, double max);
 
 #endif // WINDOWWAVEDESIGNER_H

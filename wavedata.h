@@ -3,7 +3,7 @@
 
 //define WAVELENGTH 100001
 
-#include <QVector>
+#include <QList>
 
 class WaveData
 {
@@ -18,58 +18,130 @@ public:
     static double deltaX;
     static double voltage;
     */
-    QVector<double> x()
+    void init()
+    {
+        this->clear();
+        dataX.append(0);
+        dataY.append(0);
+        this->save();
+    }
+
+    QList<double> x()
     {
         return dataX;
     }
 
-    QVector<double> y()
+    QList<double> y()
     {
         return dataY;
     }
+
     void add(double x, double y)
     {
+        this->save();
         dataX.append(x);
         dataY.append(y);
     }
+
     void clear()
     {
         dataX.clear();
         dataY.clear();
+        historyX.clear();
+        historyY.clear();
+        futureX.clear();
+        futureY.clear();
     }
+
+    void copyData(WaveData *data)
+    {
+        this->save();
+        dataX.clear();
+        dataY.clear();
+        dataX.append(data->x());
+        dataY.append(data->y());
+    }
+
     int count()
     {
-        if (dataX.size() == dataY.size())
-            return dataX.size();
-        return -1;
+        return dataX.size();
     }
+
     double x_at(int i)
     {
         return dataX.at(i);
     }
+
     double y_at(int i)
     {
         return dataY.at(i);
     }
-    void set(int i, double x, double y)
+
+    void set(int i, double x, double y, bool if_save)
     {
-        if (i >= dataX.size() || i >= dataY.size())
-            return;
+        if (if_save)
+            this->save();
         dataX[i] = x;
         dataY[i] = y;
     }
+
     void del(int i)
     {
-        dataX.remove(i);
-        dataY.remove(i);
+        this->save();
+        dataX.removeAt(i);
+        dataY.removeAt(i);
     }
+
     void insert(int i, double x, double y)
     {
+        this->save();
         dataX.insert(i, x);
         dataY.insert(i, y);
     }
+
+    void save()
+    {
+        if (historyX.count() > 0 && dataX == historyX.last() && dataY == historyY.last())
+            return;
+        historyX.append(dataX);
+        historyY.append(dataY);
+        futureX.clear();
+        futureY.clear();
+    }
+
+    void unDo()
+    {
+        futureX.append(dataX);
+        futureY.append(dataY);
+        dataX = historyX.last();
+        dataY = historyY.last();
+        historyX.removeLast();
+        historyY.removeLast();
+    }
+
+    int count_unDo()
+    {
+        return historyX.count();
+    }
+
+    void reDo()
+    {
+        historyX.append(dataX);
+        historyY.append(dataY);
+        dataX = futureX.last();
+        dataY = futureY.last();
+        futureX.removeLast();
+        futureY.removeLast();
+    }
+
+    int count_reDo()
+    {
+        return futureX.count();
+    }
 protected:
-    QVector<double> dataX, dataY;
+    QList<double> dataX, dataY;
+
+    QList<QList<double>> historyX, historyY, futureX, futureY;
 };
 
 #endif // WAVEDATA_H

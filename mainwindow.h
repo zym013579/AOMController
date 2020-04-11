@@ -50,5 +50,6 @@ private:
 
 void init_waveGraph(QCustomPlot *target);
 void update_waveGraph(QCustomPlot *target, QVector<double> x, QVector<double> y);
+double check_data(double input, double min, double max);
 
 #endif // MAINWINDOW_H
