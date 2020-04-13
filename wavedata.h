@@ -82,6 +82,16 @@ public:
         dataY[i] = y;
     }
 
+    void set_x(int i, double x)
+    {
+        dataX[i] = x;
+    }
+
+    void set_y(int i, double y)
+    {
+        dataY[i] = y;
+    }
+
     void del(int i)
     {
         dataX.removeAt(i);

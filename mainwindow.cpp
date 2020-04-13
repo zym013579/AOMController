@@ -19,10 +19,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     emit modu->init();
     emit edit->init();
-    //WaveData::tempX.append(0);
-    //WaveData::tempY.append(0);
-    //waveModuX[1]->append(2);
-    //WindowWaveDesigner *wDesigner = new WindowWaveDesigner;
+
     connect(wDesigner, SIGNAL(send_waveData(WaveData*)), this, SLOT(recieve_waveData(WaveData*)));
 }
 
@@ -37,7 +34,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-/*连接成功执行*/
 void MainWindow::connect_success()
 {
     ui->pushButtonStart->setEnabled(true);
@@ -45,8 +41,6 @@ void MainWindow::connect_success()
     ui->lineEditConnectStatus->setText("已连接，未调制");
 }
 
-/* 初始化图形界面，包括颜色等全局设置
-目前仅包括纵轴范围*/
 void init_waveGraph(QCustomPlot *target)
 {
     target->clearGraphs();
@@ -56,7 +50,6 @@ void init_waveGraph(QCustomPlot *target)
     target->replot();
 }
 
-/* 用x,y来更新target图形*/
 void update_waveGraph(QCustomPlot *target, QList<double> x, QList<double> y)
 {
     target->graph(0)->setData(x.toVector(), y.toVector());
@@ -73,21 +66,18 @@ void reset_waveGraphAxis(QCustomPlot *target)
     target->replot();
 }*/
 
-/*更新调制图形*/
 void MainWindow::update_myModuGraph()
 {
     ui->widgetModulatingWave->xAxis->setRange(0, modu->x_at(modu->count()-1));
     emit update_waveGraph(ui->widgetModulatingWave, modu->x(), modu->y());
 }
 
-/*更新编辑图形*/
 void MainWindow::update_myEditGraph()
 {
     ui->widgetEditingWave->xAxis->setRange(0, edit->x_at(edit->count()-1));
     emit update_waveGraph(ui->widgetEditingWave, edit->x(), edit->y());
 }
 
-/*接收波形*/
 void MainWindow::recieve_waveData(WaveData *data)
 {
     edit->copyData(data);

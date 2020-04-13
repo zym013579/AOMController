@@ -22,17 +22,17 @@ public:
 
 private slots:
     /**
-     * @brief update_myModuGraph 更新本窗口的正在调制图像
+     * @brief 更新本窗口的正在调制图像
      */
     void update_myModuGraph();
 
     /**
-     * @brief update_myEditGraph 更新本窗口的正在编辑图像
+     * @brief 更新本窗口的正在编辑图像
      */
     void update_myEditGraph();
 
     /**
-     * @brief recieve_waveData 接收波形信息
+     * @brief 接收波形信息
      * @param data 传入的波形信息
      */
     void recieve_waveData(WaveData *data);
@@ -59,13 +59,13 @@ private:
 };
 
 /**
- * @brief init_waveGraph 初始化图形widget
+ * @brief 初始化图形widget
  * @param target 目标widget
  */
 void init_waveGraph(QCustomPlot *target);
 
 /**
- * @brief update_waveGraph 更新目标widget图形（底层）
+ * @brief 更新目标widget图形（底层）
  * @param target 目标widget
  * @param x x轴数据
  * @param y y轴数据

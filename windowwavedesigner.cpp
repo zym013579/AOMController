@@ -26,7 +26,6 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     ui->lineEditPointVoltage->setValidator(new QRegExpValidator(regExpUDouble, ui->lineEditPointVoltage));
 
     emit init_waveGraph(ui->widgetWave);
-    //ui->widgetWave->graph()->setLineStyle(QCPGraph::LineStyle::lsStepLeft); //方波图形
 
     ui->widgetWave->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCircle, point_circleSize));
     ui->widgetWave->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);// QCP::iSelectPlottables  QCP::iRangeZoom
@@ -34,16 +33,13 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     ui->widgetWave->axisRect()->setRangeDrag(Qt::Horizontal);   //设置仅水平拖动和缩放
     ui->widgetWave->axisRect()->setRangeZoom(Qt::Horizontal);
 
-    //emit edit->init();
-    //emit update_myGraph();
-
     connect(ui->widgetWave, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(widgetMousePress(QMouseEvent*)));
     connect(ui->widgetWave, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(widgetMouseRelease(QMouseEvent*)));
     connect(ui->widgetWave, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(widgetMouseMove(QMouseEvent*)));
 
-    connect(ui->lineEditPointNumber, SIGNAL(textEdited(QString)), this, SLOT(update_pointNumber()));
-    connect(ui->lineEditPointTime, SIGNAL(textEdited(QString)), this, SLOT(update_pointData()));
-    connect(ui->lineEditPointVoltage, SIGNAL(textEdited(QString)), this, SLOT(update_pointData()));
+//    connect(ui->lineEditPointNumber, SIGNAL(textEdited(QString)), this, SLOT(update_pointNumber(QString)));
+//    connect(ui->lineEditPointTime, SIGNAL(textEdited(QString)), this, SLOT(update_pointData()));
+//    connect(ui->lineEditPointVoltage, SIGNAL(textEdited(QString)), this, SLOT(update_pointData()));
     connect(ui->lineEditPointNumber, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
     connect(ui->lineEditPointTime, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
     connect(ui->lineEditPointVoltage, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
@@ -67,7 +63,6 @@ double check_data(double input, double min, double max)
 void WindowWaveDesigner::update_myGraph()
 {
     emit update_waveGraph(ui->widgetWave, edit->x(), edit->y());
-    //emit update_pointText();
 }
 
 void WindowWaveDesigner::update_pointText()
@@ -132,6 +127,7 @@ void WindowWaveDesigner::check_pointText()
     emit save_step();
 }
 
+/* 早期文本框编辑事件代码
 void WindowWaveDesigner::update_pointNumber()
 {
     int i = ui->lineEditPointNumber->text().toInt();
@@ -165,6 +161,7 @@ void WindowWaveDesigner::update_pointData()
         edit->set(i, check_data(ui->lineEditPointTime->text().toDouble(), edit->x_at(i-1)+minDisX, edit->x_at(i+1)-minDisX), check_data(ui->lineEditPointVoltage->text().toDouble()/100, 0, 1));
     emit update_myGraph();
 }
+*/
 
 void WindowWaveDesigner::save_step()
 {
@@ -316,16 +313,6 @@ void WindowWaveDesigner::closeEvent(QCloseEvent *event)
 
 void WindowWaveDesigner::on_pushButtonNew_clicked()
 {
-    //qDebug() << ui->widgetWave->itemCount();
-    //ui->widgetWave->graph()->selectTest();
-
-    //ui->widgetWave->graph()->layer()->children();
-
-    //QCPDataRange x = QCPDataRange(2, 3);
-    //QCPDataSelection y = QCPDataSelection(x);
-    //x->setBegin(2);
-    //x->setEnd(3);
-    //ui->widgetWave->graph(0)->setSelection(y);
     int i = witch_pointClicked();
     if (i == -1 || i == edit->count()-1)
         edit->add(edit->x_at(edit->count()-1)+disX, edit->y_at(edit->count()-1));
@@ -337,9 +324,6 @@ void WindowWaveDesigner::on_pushButtonNew_clicked()
 
 void WindowWaveDesigner::on_pushButtonSave_clicked()
 {
-    //* test
-    //qDebug() << ui->lineEditPointNumber->text().toInt() << "\n" << ui->lineEditPointVoltage->text().toDouble() << "\n\n";
-    //*/
     emit send_waveData(edit);
 }
 
@@ -355,5 +339,45 @@ void WindowWaveDesigner::on_pushButtonDelete_clicked()
         emit choose_point(-1);
         emit update_pointText();
     }
+    emit update_myGraph();
+}
+
+void WindowWaveDesigner::on_lineEditPointNumber_textEdited(const QString &arg1)
+{
+    if (arg1 != "")
+    {
+        if (arg1.toInt() < edit->count() && arg1.toInt() >= 0)
+        {
+            emit choose_point(arg1.toInt());
+            emit update_pointText();
+        }
+        else
+            emit choose_point(-1);
+    }
+    else
+    {
+        emit choose_point(-1);
+        emit update_pointText();
+    }
+}
+
+void WindowWaveDesigner::on_lineEditPointTime_textEdited(const QString &arg1)
+{
+    int i = witch_pointClicked();
+    if (i == -1 || arg1 == "")
+        return;
+    if (i == edit->count()-1)
+        edit->set_x(i, MAX(edit->x_at(i-1), arg1.toDouble()));
+    else
+        edit->set_x(i, check_data(arg1.toDouble(), edit->x_at(i-1)+minDisX, edit->x_at(i+1)-minDisX));
+    emit update_myGraph();
+}
+
+void WindowWaveDesigner::on_lineEditPointVoltage_textEdited(const QString &arg1)
+{
+    int i = witch_pointClicked();
+    if (i == -1 || arg1 == "")
+        return;
+    edit->set_y(i, check_data(arg1.toDouble()/100, 0, 1));
     emit update_myGraph();
 }
