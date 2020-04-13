@@ -42,6 +42,16 @@ private slots:
 
     void update_pointData();
 
+    void save_step();
+
+    void drop_step();
+
+    void undo_step();
+
+    void redo_step();
+
+    void fresh_undo_redo_button();
+
     int if_pointClicked(QMouseEvent *event);
 
     int witch_pointClicked();

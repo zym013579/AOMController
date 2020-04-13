@@ -38,7 +38,6 @@ public:
 
     void add(double x, double y)
     {
-        this->save();
         dataX.append(x);
         dataY.append(y);
     }
@@ -55,7 +54,6 @@ public:
 
     void copyData(WaveData *data)
     {
-        this->save();
         dataX.clear();
         dataY.clear();
         dataX.append(data->x());
@@ -77,24 +75,20 @@ public:
         return dataY.at(i);
     }
 
-    void set(int i, double x, double y, bool if_save)
+    void set(int i, double x, double y)
     {
-        if (if_save)
-            this->save();
         dataX[i] = x;
         dataY[i] = y;
     }
 
     void del(int i)
     {
-        this->save();
         dataX.removeAt(i);
         dataY.removeAt(i);
     }
 
     void insert(int i, double x, double y)
     {
-        this->save();
         dataX.insert(i, x);
         dataY.insert(i, y);
     }
@@ -113,10 +107,10 @@ public:
     {
         futureX.append(dataX);
         futureY.append(dataY);
-        dataX = historyX.last();
-        dataY = historyY.last();
         historyX.removeLast();
         historyY.removeLast();
+        dataX = historyX.last();
+        dataY = historyY.last();
     }
 
     int count_unDo()
@@ -126,10 +120,10 @@ public:
 
     void reDo()
     {
-        historyX.append(dataX);
-        historyY.append(dataY);
         dataX = futureX.last();
         dataY = futureY.last();
+        historyX.append(dataX);
+        historyY.append(dataY);
         futureX.removeLast();
         futureY.removeLast();
     }
@@ -137,6 +131,13 @@ public:
     int count_reDo()
     {
         return futureX.count();
+    }
+
+    /*还原对当前波形的更改*/
+    void drop()
+    {
+        dataX = historyX.last();
+        dataY = historyY.last();
     }
 protected:
     QList<double> dataX, dataY;

@@ -46,6 +46,9 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     connect(ui->lineEditPointNumber, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
     connect(ui->lineEditPointTime, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
     connect(ui->lineEditPointVoltage, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
+
+    connect(ui->actionUndo, SIGNAL(triggered()), this, SLOT(undo_step()));
+    connect(ui->actionRedo, SIGNAL(triggered()), this, SLOT(redo_step()));
 }
 
 WindowWaveDesigner::~WindowWaveDesigner()
@@ -99,10 +102,7 @@ void WindowWaveDesigner::check_pointText()
     {
         if (ui->lineEditPointTime->text().toDouble() != 0)
         {
-            edit->unDo();
-            edit->save();
-            update_myGraph();
-            choose_point(i);
+            drop_step();
             QMessageBox::warning(this, "注意", "暂不能更改起始点的时间", QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
@@ -111,19 +111,13 @@ void WindowWaveDesigner::check_pointText()
     {
         if (ui->lineEditPointTime->text().toDouble() < edit->x_at(i-1)+minDisX)
         {
-            edit->unDo();
-            edit->save();
-            update_myGraph();
-            choose_point(i);
+            drop_step();
             QMessageBox::warning(this, "注意", "点时间过小", QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
         if (i < edit->count()-1 && ui->lineEditPointTime->text().toDouble() > edit->x_at(i+1)-minDisX)
         {
-            edit->unDo();
-            edit->save();
-            update_myGraph();
-            choose_point(i);
+            drop_step();
             QMessageBox::warning(this, "注意", "点时间过大", QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
@@ -131,14 +125,11 @@ void WindowWaveDesigner::check_pointText()
 
     if (ui->lineEditPointVoltage->text().toDouble() > 100)
     {
-        edit->unDo();
-        edit->save();
-        update_myGraph();
-        choose_point(i);
+        drop_step();
         QMessageBox::warning(this, "注意", "点电压超出范围", QMessageBox::Ok, QMessageBox::Ok);
         return;
     }
-    edit->save();
+    save_step();
 }
 
 /*根据文本框更新选点*/
@@ -159,16 +150,64 @@ void WindowWaveDesigner::update_pointNumber()
 /*用文本框数据更新图形（不排错）*/
 void WindowWaveDesigner::update_pointData()
 {
-    if (witch_pointClicked() == -1)
+    if (witch_pointClicked() == -1 || ui->lineEditPointTime->text() == "" || ui->lineEditPointVoltage->text() == "")
         return;
     int i = ui->lineEditPointNumber->text().toInt();
     if (i == 0)
-        edit->set(0, 0, check_data(ui->lineEditPointVoltage->text().toDouble()/100, 0, 1), false);
+        edit->set(0, 0, check_data(ui->lineEditPointVoltage->text().toDouble()/100, 0, 1));
     else if (i == edit->count()-1)
-        edit->set(i, MAX(edit->x_at(i-1), ui->lineEditPointTime->text().toDouble()), check_data(ui->lineEditPointVoltage->text().toDouble()/100, 0, 1), false);
+        edit->set(i, MAX(edit->x_at(i-1), ui->lineEditPointTime->text().toDouble()), check_data(ui->lineEditPointVoltage->text().toDouble()/100, 0, 1));
     else
-        edit->set(i, check_data(ui->lineEditPointTime->text().toDouble(), edit->x_at(i-1)+minDisX, edit->x_at(i+1)-minDisX), check_data(ui->lineEditPointVoltage->text().toDouble()/100, 0, 1), false);
+        edit->set(i, check_data(ui->lineEditPointTime->text().toDouble(), edit->x_at(i-1)+minDisX, edit->x_at(i+1)-minDisX), check_data(ui->lineEditPointVoltage->text().toDouble()/100, 0, 1));
     emit update_myGraph();
+}
+
+void WindowWaveDesigner::save_step()
+{
+    edit->save();
+    emit fresh_undo_redo_button();
+}
+
+void WindowWaveDesigner::drop_step()
+{
+    edit->drop();
+    emit update_myGraph();
+    emit update_pointText();
+}
+
+void WindowWaveDesigner::undo_step()
+{
+    if (edit->count_unDo() <= 1)
+        return;
+    edit->unDo();
+    fresh_undo_redo_button();
+    choose_point(-1);
+    emit update_myGraph();
+    emit update_pointText();
+}
+
+void WindowWaveDesigner::redo_step()
+{
+    if (edit->count_reDo() < 1)
+        return;
+    edit->reDo();
+    fresh_undo_redo_button();
+    choose_point(-1);
+    emit update_myGraph();
+    emit update_pointText();
+}
+
+void WindowWaveDesigner::fresh_undo_redo_button()
+{
+    if (edit->count_unDo() > 1)
+        ui->actionUndo->setEnabled(true);
+    else
+        ui->actionUndo->setEnabled(false);
+
+    if (edit->count_reDo() > 0)
+        ui->actionRedo->setEnabled(true);
+    else
+        ui->actionRedo->setEnabled(false);
 }
 
 /*是否正在点击某个点，若是返回序号*/
@@ -244,7 +283,7 @@ void WindowWaveDesigner::widgetMouseRelease(QMouseEvent *event)
     if (!mouseHasMoved)
         emit choose_point(if_pointClicked(event));
     else if (c_point != -1)
-        edit->save();
+        emit save_step();
     c_point = -1;
     ui->widgetWave->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
 }
@@ -265,7 +304,7 @@ void WindowWaveDesigner::widgetMouseMove(QMouseEvent *event)
         x_val = check_data(X_VAL, edit->x_at(c_point-1)+minDisX, edit->x_at(c_point+1)-minDisX);
     else
         x_val = MAX(edit->x_at(c_point-1)+minDisX, X_VAL);
-    edit->set(c_point, x_val, check_data(Y_VAL, 0, 1), false);
+    edit->set(c_point, x_val, check_data(Y_VAL, 0, 1));
     emit update_myGraph();
     emit update_pointText();
 }
@@ -303,6 +342,7 @@ void WindowWaveDesigner::on_pushButtonNew_clicked()
         edit->add(edit->x_at(edit->count()-1)+disX, edit->y_at(edit->count()-1));
     else if (edit->x_at(i+1)-edit->x_at(i) > 10*minDisX)
         edit->insert(i+1, (edit->x_at(i+1)+edit->x_at(i))/2.0, edit->y_at(i));
+    emit save_step();
     emit update_myGraph();
 }
 
@@ -312,9 +352,7 @@ void WindowWaveDesigner::on_pushButtonSave_clicked()
     //qDebug() << ui->lineEditPointNumber->text().toInt() << "\n" << ui->lineEditPointVoltage->text().toDouble() << "\n\n";
     //*/
     //emit send_waveData(edit);
-    edit->unDo();
-    update_myGraph();
-    update_pointText();
+    undo_step();
 }
 
 void WindowWaveDesigner::on_pushButtonDelete_clicked()
@@ -324,6 +362,7 @@ void WindowWaveDesigner::on_pushButtonDelete_clicked()
     else if (witch_pointClicked() != -1)
     {
         edit->del(witch_pointClicked());
+        emit save_step();
         c_point = -1;
         emit choose_point(-1);
     }
