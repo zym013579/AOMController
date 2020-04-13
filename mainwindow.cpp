@@ -57,14 +57,9 @@ void init_waveGraph(QCustomPlot *target)
 }
 
 /* 用x,y来更新target图形*/
-void update_waveGraph(QCustomPlot *target, QVector<double> x, QVector<double> y)
+void update_waveGraph(QCustomPlot *target, QList<double> x, QList<double> y)
 {
-    target->graph(0)->setData(x, y);
-    //target->xAxis->setLabel("x");
-    //target->yAxis->setLabel("y");
-    //x.remove(0,5);
-    //target->xAxis->setRange(x[0], x[x.size()-1]+0.5);
-    //target->yAxis->setRange(-1, 1);
+    target->graph(0)->setData(x.toVector(), y.toVector());
     target->replot();
 }
 
@@ -82,40 +77,35 @@ void reset_waveGraphAxis(QCustomPlot *target)
 void MainWindow::update_myModuGraph()
 {
     ui->widgetModulatingWave->xAxis->setRange(0, modu->x_at(modu->count()-1));
-    emit update_waveGraph(ui->widgetModulatingWave, modu->x().toVector(), modu->y().toVector());
-    //reset_waveGraphAxis(ui->widgetModulatingWave);
+    emit update_waveGraph(ui->widgetModulatingWave, modu->x(), modu->y());
 }
 
 /*更新编辑图形*/
 void MainWindow::update_myEditGraph()
 {
     ui->widgetEditingWave->xAxis->setRange(0, edit->x_at(edit->count()-1));
-    emit update_waveGraph(ui->widgetEditingWave, edit->x().toVector(), edit->y().toVector());
-    //reset_waveGraphAxis(ui->widgetEditingWave);
+    emit update_waveGraph(ui->widgetEditingWave, edit->x(), edit->y());
 }
 
 /*接收波形*/
 void MainWindow::recieve_waveData(WaveData *data)
 {
-    //*edit = *data;
     edit->copyData(data);
     emit update_myEditGraph();
 }
 
 void MainWindow::on_pushButtonEditWave_clicked()
 {
-    //WindowWaveDesigner *wDesigner = new WindowWaveDesigner;
     wDesigner->recieve_waveData(edit);
     wDesigner->show();
 }
 
 void MainWindow::on_actionAbout_triggered()
 {
-    //DialogAbout *wAbout = new DialogAbout;
     wAbout->exec();
 }
 
-/*临时用作测试*/
+/*暂时用于测试其他内容*/
 void MainWindow::on_pushButtonStart_clicked()
 {
     edit->clear();
@@ -124,13 +114,11 @@ void MainWindow::on_pushButtonStart_clicked()
         edit->add(i/1.0, rand()%2);
     }
     emit update_myEditGraph();
-    //ui->widgetModulatingWave->setGeometry(5, 10, 800, 200);
 }
 
 void MainWindow::on_pushButtonSend_clicked()
 {
-    //QVector<double> x(100000), y(100000);
-    //update_waveGraph(ui->widgetModulatingWave, x, y);
+    ;
 }
 
 void MainWindow::on_pushButtonConnect_clicked()

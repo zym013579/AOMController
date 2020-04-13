@@ -59,7 +59,6 @@ WindowWaveDesigner::~WindowWaveDesigner()
     delete ui;
 }
 
-/*比较input与最大最小值，返回适当的值*/
 double check_data(double input, double min, double max)
 {
     return MAX(min, MIN(max, input));
@@ -67,11 +66,10 @@ double check_data(double input, double min, double max)
 
 void WindowWaveDesigner::update_myGraph()
 {
-    emit update_waveGraph(ui->widgetWave, edit->x().toVector(), edit->y().toVector());
+    emit update_waveGraph(ui->widgetWave, edit->x(), edit->y());
     //emit update_pointText();
 }
 
-/*根据选点更新文本框*/
 void WindowWaveDesigner::update_pointText()
 {
     int i = witch_pointClicked();
@@ -134,7 +132,6 @@ void WindowWaveDesigner::check_pointText()
     emit save_step();
 }
 
-/*根据文本框更新选点*/
 void WindowWaveDesigner::update_pointNumber()
 {
     int i = ui->lineEditPointNumber->text().toInt();
@@ -155,7 +152,6 @@ void WindowWaveDesigner::update_pointNumber()
     }
 }
 
-/*用文本框数据更新图形（不排错）*/
 void WindowWaveDesigner::update_pointData()
 {
     if (witch_pointClicked() == -1 || ui->lineEditPointTime->text() == "" || ui->lineEditPointVoltage->text() == "")
@@ -220,36 +216,10 @@ void WindowWaveDesigner::fresh_undo_redo_button()
         ui->actionRedo->setEnabled(false);
 }
 
-/*是否正在点击某个点，若是返回序号*/
 int WindowWaveDesigner::if_pointClicked(QMouseEvent *event)
 {
-    //double x_val = ui->widgetWave->xAxis->pixelToCoord(event->pos().x());
-    //double y_val = ui->widgetWave->yAxis->pixelToCoord(event->pos().y());
-
-    //以下两行式子中的常数均为实际测得
-    //double x_range = (ui->widgetWave->width()-34-15)/30.0*5/ui->widgetWave->xAxis->range().size()*11/point_circleSize;
-    //double y_range = (ui->widgetWave->height()-14-24)/6.2/ui->widgetWave->yAxis->range().size()*11/point_circleSize;
-    /* debug
-    qDebug() << "x_pos:" << event->pos().x();
-    qDebug() << "y_pos:" << event->pos().y();
-    qDebug() << "x_range:" << x_range;
-    qDebug() << "y_range:" << y_range;
-    qDebug() << "x_val:" << x_val;
-    qDebug() << "y_val:" << y_val;
-    */
-    //double tmp = 15;
-
     for (int i=0; i<edit->count(); i++)
     {
-        /* debug
-        qDebug() << "i:" << i;
-        qDebug() << "count:" << edit->count();
-        qDebug() << "x_at:" << edit->x_at(i);
-        qDebug() << "y_at:" << edit->y_at(i);
-        qDebug() << "xout:" << qPow((x_val-edit->x_at(i))*x_range, 2);
-        qDebug() << "yout:" << qPow((y_val-edit->y_at(i))*y_range, 2);
-        qDebug() << "\n";
-        */
         if ((X_VAL-edit->x_at(i))*X_RANGE > 1)
             continue;
         else if (qPow((X_VAL-edit->x_at(i))*X_RANGE, 2)+qPow((Y_VAL-edit->y_at(i))*Y_RANGE, 2) <= 1)
@@ -260,7 +230,6 @@ int WindowWaveDesigner::if_pointClicked(QMouseEvent *event)
     return -1;
 }
 
-/*是否已经选中了某个点，若是返回序号*/
 int WindowWaveDesigner::witch_pointClicked()
 {
     if (ui->widgetWave->graph()->selection() == QCPDataSelection())
@@ -268,7 +237,6 @@ int WindowWaveDesigner::witch_pointClicked()
     return ui->widgetWave->graph()->selection().dataRange().begin();
 }
 
-/*选中某个点，其中-1为取消选点*/
 void WindowWaveDesigner::choose_point(int i)
 {
     if (i > -1)
@@ -284,7 +252,7 @@ void WindowWaveDesigner::recieve_waveData(WaveData *data)
     edit->copyData(data);
     emit fresh_undo_redo_button();
     if (edit->count() > 1)
-        ui->widgetWave->xAxis->setRange(0, edit->x_at(edit->count()-1));
+        ui->widgetWave->xAxis->setRange(0, 1.05*edit->x_at(edit->count()-1));
     emit update_myGraph();
     emit choose_point(-1);
     emit update_pointText();
@@ -317,8 +285,6 @@ void WindowWaveDesigner::widgetMouseMove(QMouseEvent *event)
     if (c_point == -1)
         return;
     ui->widgetWave->setInteractions(QCP::iRangeZoom);
-    //double x_val = ui->widgetWave->xAxis->pixelToCoord(event->pos().x());
-    //double y_val = ui->widgetWave->yAxis->pixelToCoord(event->pos().y());
 
     double x_val;
     if (c_point == 0)
@@ -380,7 +346,7 @@ void WindowWaveDesigner::on_pushButtonSave_clicked()
 void WindowWaveDesigner::on_pushButtonDelete_clicked()
 {
     if (witch_pointClicked() == 0)
-        ; //不能删除初始点，或者删除后重排列
+        QMessageBox::warning(this, "提示", "暂不支持删除起始点", QMessageBox::Ok, QMessageBox::Ok); //不能删除初始点，或者删除后重排列
     else if (witch_pointClicked() != -1)
     {
         edit->del(witch_pointClicked());
