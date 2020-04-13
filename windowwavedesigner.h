@@ -27,6 +27,9 @@ class WindowWaveDesigner : public QMainWindow
 {
     Q_OBJECT
 
+public slots:
+    void recieve_waveData(WaveData *data);
+
 public:
     explicit WindowWaveDesigner(QWidget *parent = nullptr);
     ~WindowWaveDesigner();

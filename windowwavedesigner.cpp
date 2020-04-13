@@ -27,14 +27,15 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
 
     emit init_waveGraph(ui->widgetWave);
     //ui->widgetWave->graph()->setLineStyle(QCPGraph::LineStyle::lsStepLeft); //方波图形
+
     ui->widgetWave->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCircle, point_circleSize));
     ui->widgetWave->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);// QCP::iSelectPlottables  QCP::iRangeZoom
     ui->widgetWave->graph()->setSelectable(QCP::SelectionType::stSingleData);   //仅可选择一个点
     ui->widgetWave->axisRect()->setRangeDrag(Qt::Horizontal);   //设置仅水平拖动和缩放
     ui->widgetWave->axisRect()->setRangeZoom(Qt::Horizontal);
 
-    emit edit->init();
-    emit update_myGraph();
+    //emit edit->init();
+    //emit update_myGraph();
 
     connect(ui->widgetWave, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(widgetMousePress(QMouseEvent*)));
     connect(ui->widgetWave, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(widgetMouseRelease(QMouseEvent*)));
@@ -93,7 +94,8 @@ void WindowWaveDesigner::check_pointText()
     int i = ui->lineEditPointNumber->text().toInt();
     if (i >= edit->count()) //序号部分
     {
-        choose_point(-1);
+        emit choose_point(-1);
+        emit update_pointText();
         QMessageBox::warning(this, "注意", "点序号超出范围", QMessageBox::Ok, QMessageBox::Ok);
         return;
     }
@@ -102,7 +104,7 @@ void WindowWaveDesigner::check_pointText()
     {
         if (ui->lineEditPointTime->text().toDouble() != 0)
         {
-            drop_step();
+            emit drop_step();
             QMessageBox::warning(this, "注意", "暂不能更改起始点的时间", QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
@@ -111,13 +113,13 @@ void WindowWaveDesigner::check_pointText()
     {
         if (ui->lineEditPointTime->text().toDouble() < edit->x_at(i-1)+minDisX)
         {
-            drop_step();
+            emit drop_step();
             QMessageBox::warning(this, "注意", "点时间过小", QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
         if (i < edit->count()-1 && ui->lineEditPointTime->text().toDouble() > edit->x_at(i+1)-minDisX)
         {
-            drop_step();
+            emit drop_step();
             QMessageBox::warning(this, "注意", "点时间过大", QMessageBox::Ok, QMessageBox::Ok);
             return;
         }
@@ -125,11 +127,11 @@ void WindowWaveDesigner::check_pointText()
 
     if (ui->lineEditPointVoltage->text().toDouble() > 100)
     {
-        drop_step();
+        emit drop_step();
         QMessageBox::warning(this, "注意", "点电压超出范围", QMessageBox::Ok, QMessageBox::Ok);
         return;
     }
-    save_step();
+    emit save_step();
 }
 
 /*根据文本框更新选点*/
@@ -139,12 +141,18 @@ void WindowWaveDesigner::update_pointNumber()
     if (ui->lineEditPointNumber->text() != "")
     {
         if (i < edit->count() && i >= 0)
+        {
             emit choose_point(i);
+            emit update_pointText();
+        }
         else
-            emit choose_point(-2);
+            emit choose_point(-1);
     }
     else
+    {
         emit choose_point(-1);
+        emit update_pointText();
+    }
 }
 
 /*用文本框数据更新图形（不排错）*/
@@ -180,8 +188,9 @@ void WindowWaveDesigner::undo_step()
     if (edit->count_unDo() <= 1)
         return;
     edit->unDo();
-    fresh_undo_redo_button();
-    choose_point(-1);
+    emit fresh_undo_redo_button();
+    emit choose_point(-1);
+    emit update_pointText();
     emit update_myGraph();
     emit update_pointText();
 }
@@ -191,8 +200,9 @@ void WindowWaveDesigner::redo_step()
     if (edit->count_reDo() < 1)
         return;
     edit->reDo();
-    fresh_undo_redo_button();
-    choose_point(-1);
+    emit fresh_undo_redo_button();
+    emit choose_point(-1);
+    emit update_pointText();
     emit update_myGraph();
     emit update_pointText();
 }
@@ -258,16 +268,26 @@ int WindowWaveDesigner::witch_pointClicked()
     return ui->widgetWave->graph()->selection().dataRange().begin();
 }
 
-/*选中某个点，其中-1为取消选点并更新文本框，-2则不更新文本框*/
+/*选中某个点，其中-1为取消选点*/
 void WindowWaveDesigner::choose_point(int i)
 {
     if (i > -1)
         ui->widgetWave->graph()->setSelection(QCPDataSelection(QCPDataRange(i, i+1)));
     else
         ui->widgetWave->graph()->setSelection(QCPDataSelection());
-    if (i != -2)
-        emit update_pointText();
     emit update_myGraph();
+}
+
+void WindowWaveDesigner::recieve_waveData(WaveData *data)
+{
+    edit->clear();
+    edit->copyData(data);
+    emit fresh_undo_redo_button();
+    if (edit->count() > 1)
+        ui->widgetWave->xAxis->setRange(0, edit->x_at(edit->count()-1));
+    emit update_myGraph();
+    emit choose_point(-1);
+    emit update_pointText();
 }
 
 void WindowWaveDesigner::widgetMousePress(QMouseEvent *event)
@@ -281,7 +301,10 @@ void WindowWaveDesigner::widgetMousePress(QMouseEvent *event)
 void WindowWaveDesigner::widgetMouseRelease(QMouseEvent *event)
 {
     if (!mouseHasMoved)
+    {
         emit choose_point(if_pointClicked(event));
+        emit update_pointText();
+    }
     else if (c_point != -1)
         emit save_step();
     c_point = -1;
@@ -315,7 +338,7 @@ void WindowWaveDesigner::closeEvent(QCloseEvent *event)
     //event->accept();
     //event->ignore();
     if (result == QMessageBox::Yes)
-        ;
+        emit on_pushButtonSave_clicked();
     else if (result == QMessageBox::Save)
         ;
     else if (result == QMessageBox::Discard)
@@ -351,8 +374,7 @@ void WindowWaveDesigner::on_pushButtonSave_clicked()
     //* test
     //qDebug() << ui->lineEditPointNumber->text().toInt() << "\n" << ui->lineEditPointVoltage->text().toDouble() << "\n\n";
     //*/
-    //emit send_waveData(edit);
-    undo_step();
+    emit send_waveData(edit);
 }
 
 void WindowWaveDesigner::on_pushButtonDelete_clicked()
@@ -365,6 +387,7 @@ void WindowWaveDesigner::on_pushButtonDelete_clicked()
         emit save_step();
         c_point = -1;
         emit choose_point(-1);
+        emit update_pointText();
     }
     emit update_myGraph();
 }

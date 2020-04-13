@@ -14,8 +14,8 @@ MainWindow::MainWindow(QWidget *parent) :
     edit(new WaveData)
 {
     ui->setupUi(this);
-    init_waveGraph(ui->widgetModulatingWave);
-    init_waveGraph(ui->widgetEditingWave);
+    emit init_waveGraph(ui->widgetModulatingWave);
+    emit init_waveGraph(ui->widgetEditingWave);
 
     emit modu->init();
     emit edit->init();
@@ -82,7 +82,7 @@ void reset_waveGraphAxis(QCustomPlot *target)
 void MainWindow::update_myModuGraph()
 {
     ui->widgetModulatingWave->xAxis->setRange(0, modu->x_at(modu->count()-1));
-    update_waveGraph(ui->widgetModulatingWave, modu->x().toVector(), modu->y().toVector());
+    emit update_waveGraph(ui->widgetModulatingWave, modu->x().toVector(), modu->y().toVector());
     //reset_waveGraphAxis(ui->widgetModulatingWave);
 }
 
@@ -90,7 +90,7 @@ void MainWindow::update_myModuGraph()
 void MainWindow::update_myEditGraph()
 {
     ui->widgetEditingWave->xAxis->setRange(0, edit->x_at(edit->count()-1));
-    update_waveGraph(ui->widgetEditingWave, edit->x().toVector(), edit->y().toVector());
+    emit update_waveGraph(ui->widgetEditingWave, edit->x().toVector(), edit->y().toVector());
     //reset_waveGraphAxis(ui->widgetEditingWave);
 }
 
@@ -99,12 +99,13 @@ void MainWindow::recieve_waveData(WaveData *data)
 {
     //*edit = *data;
     edit->copyData(data);
-    update_myEditGraph();
+    emit update_myEditGraph();
 }
 
 void MainWindow::on_pushButtonEditWave_clicked()
 {
     //WindowWaveDesigner *wDesigner = new WindowWaveDesigner;
+    wDesigner->recieve_waveData(edit);
     wDesigner->show();
 }
 
@@ -117,12 +118,12 @@ void MainWindow::on_actionAbout_triggered()
 /*临时用作测试*/
 void MainWindow::on_pushButtonStart_clicked()
 {
-    modu->clear();
+    edit->clear();
     for (int i = 0; i < 10; i++)
     {
-        modu->add(i/1.0, rand()%2);
+        edit->add(i/1.0, rand()%2);
     }
-    update_myModuGraph();
+    emit update_myEditGraph();
     //ui->widgetModulatingWave->setGeometry(5, 10, 800, 200);
 }
 
@@ -135,5 +136,5 @@ void MainWindow::on_pushButtonSend_clicked()
 void MainWindow::on_pushButtonConnect_clicked()
 {
     //假装连接成功
-    MainWindow::connect_success();
+    emit connect_success();
 }

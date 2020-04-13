@@ -58,6 +58,7 @@ public:
         dataY.clear();
         dataX.append(data->x());
         dataY.append(data->y());
+        this->save();
     }
 
     int count()
