@@ -17,16 +17,11 @@ MainWindow::MainWindow(QWidget *parent) :
     emit init_waveGraph(ui->widgetModulatingWave);
     emit init_waveGraph(ui->widgetEditingWave);
 
-    emit modu->init();
-    emit edit->init();
-
     connect(wDesigner, SIGNAL(send_waveData(WaveData*)), this, SLOT(recieve_waveData(WaveData*)));
 }
 
 MainWindow::~MainWindow()
 {
-    modu->clear();
-    edit->clear();
     delete modu;
     delete edit;
     delete wAbout;

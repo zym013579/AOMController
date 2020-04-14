@@ -50,7 +50,6 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
 
 WindowWaveDesigner::~WindowWaveDesigner()
 {
-    edit->clear();
     delete edit;
     delete ui;
 }
@@ -249,7 +248,9 @@ void WindowWaveDesigner::recieve_waveData(WaveData *data)
     edit->copyData(data);
     emit fresh_undo_redo_button();
     if (edit->count() > 1)
-        ui->widgetWave->xAxis->setRange(0, 1.05*edit->x_at(edit->count()-1));
+        ui->widgetWave->xAxis->setRange(-0.05*edit->x_at(edit->count()-1), 1.05*edit->x_at(edit->count()-1));
+    else
+        ui->widgetWave->xAxis->setRange(-0.25, 5);  //tmp
     emit update_myGraph();
     emit choose_point(-1);
     emit update_pointText();
@@ -364,7 +365,7 @@ void WindowWaveDesigner::on_lineEditPointNumber_textEdited(const QString &arg1)
 void WindowWaveDesigner::on_lineEditPointTime_textEdited(const QString &arg1)
 {
     int i = witch_pointClicked();
-    if (i == -1 || arg1 == "")
+    if (i == -1 || arg1 == "" || i == 0)
         return;
     if (i == edit->count()-1)
         edit->set_x(i, MAX(edit->x_at(i-1), arg1.toDouble()));

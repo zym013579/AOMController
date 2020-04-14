@@ -5,151 +5,134 @@
 
 #include <QList>
 
+/**
+ * @brief 一张图表对应一个WaveData，函数均不检验输入是否正确，若出错则为程序逻辑错误
+ */
 class WaveData
 {
 public:
-    //static double InitX[WAVELENGTH], InitY[WAVELENGTH];
-    //static double ModuX[WAVELENGTH], ModuY[WAVELENGTH];
-    //static double EditX[WAVELENGTH], EditY[WAVELENGTH];
-    /*
-    static QVector<double> moduX, moduY;
-    static QVector<double> editX, editY;
-    static QVector<double> tempX, tempY;
-    static double deltaX;
-    static double voltage;
-    */
-    void init()
-    {
-        this->clear();
-        dataX.append(0);
-        dataY.append(0);
-        this->save();
-    }
+    WaveData();
 
-    QList<double> x()
-    {
-        return dataX;
-    }
+    ~WaveData();
 
-    QList<double> y()
-    {
-        return dataY;
-    }
+    /**
+     * @brief 输出当前x轴数据
+     * @return x轴数据
+     */
+    QList<double> x();
 
-    void add(double x, double y)
-    {
-        dataX.append(x);
-        dataY.append(y);
-    }
+    /**
+     * @brief 输出当前y轴数据
+     * @return y轴数据
+     */
+    QList<double> y();
 
-    void clear()
-    {
-        dataX.clear();
-        dataY.clear();
-        historyX.clear();
-        historyY.clear();
-        futureX.clear();
-        futureY.clear();
-    }
+    /**
+     * @brief 在末尾新增点数据
+     * @param x轴数据
+     * @param y轴数据
+     */
+    void add(double x, double y);
 
-    void copyData(WaveData *data)
-    {
-        dataX.clear();
-        dataY.clear();
-        dataX.append(data->x());
-        dataY.append(data->y());
-        this->save();
-    }
+    /**
+     * @brief 清除所有数据
+     */
+    void clear();
 
-    int count()
-    {
-        return dataX.size();
-    }
+    /**
+     * @brief 复制输入变量的当前图表数据到当前图表
+     * @param data 输入数据
+     */
+    void copyData(WaveData *data);
 
-    double x_at(int i)
-    {
-        return dataX.at(i);
-    }
+    /**
+     * @brief 统计点个数
+     * @return 点个数
+     */
+    int count();
 
-    double y_at(int i)
-    {
-        return dataY.at(i);
-    }
+    /**
+     * @brief 某个点的x轴数据
+     * @param i 点序号
+     * @return 某个点的x轴数据
+     */
+    double x_at(int i);
 
-    void set(int i, double x, double y)
-    {
-        dataX[i] = x;
-        dataY[i] = y;
-    }
+    /**
+     * @brief 某个点的y轴数据
+     * @param i 点序号
+     * @return 某个点的y轴数据
+     */
+    double y_at(int i);
 
-    void set_x(int i, double x)
-    {
-        dataX[i] = x;
-    }
+    /**
+     * @brief 更改某个点的数据
+     * @param i 点序号
+     * @param x x轴
+     * @param y y轴
+     */
+    void set(int i, double x, double y);
 
-    void set_y(int i, double y)
-    {
-        dataY[i] = y;
-    }
+    /**
+     * @brief 更改某个点的数据
+     * @param i 点序号
+     * @param x x轴
+     */
+    void set_x(int i, double x);
 
-    void del(int i)
-    {
-        dataX.removeAt(i);
-        dataY.removeAt(i);
-    }
+    /**
+     * @brief 更改某个点的数据
+     * @param i 点序号
+     * @param y y轴
+     */
+    void set_y(int i, double y);
 
-    void insert(int i, double x, double y)
-    {
-        dataX.insert(i, x);
-        dataY.insert(i, y);
-    }
+    /**
+     * @brief 删除某个点
+     * @param i 点序号
+     */
+    void del(int i);
 
-    void save()
-    {
-        if (historyX.count() > 0 && dataX == historyX.last() && dataY == historyY.last())
-            return;
-        historyX.append(dataX);
-        historyY.append(dataY);
-        futureX.clear();
-        futureY.clear();
-    }
+    /**
+     * @brief 插入一个点
+     * @param i 点序号(i之后)
+     * @param x x轴
+     * @param y y轴
+     */
+    void insert(int i, double x, double y);
 
-    void unDo()
-    {
-        futureX.append(dataX);
-        futureY.append(dataY);
-        historyX.removeLast();
-        historyY.removeLast();
-        dataX = historyX.last();
-        dataY = historyY.last();
-    }
+    /**
+     * @brief 存储当前状态，(若与上个状态相同则不存储)
+     */
+    void save();
 
-    int count_unDo()
-    {
-        return historyX.count();
-    }
+    /**
+     * @brief 撤销一步
+     */
+    void unDo();
 
-    void reDo()
-    {
-        dataX = futureX.last();
-        dataY = futureY.last();
-        historyX.append(dataX);
-        historyY.append(dataY);
-        futureX.removeLast();
-        futureY.removeLast();
-    }
+    /**
+     * @brief 能够撤销的步数
+     * @return 步数
+     */
+    int count_unDo();
 
-    int count_reDo()
-    {
-        return futureX.count();
-    }
+    /**
+     * @brief 还原一步
+     */
+    void reDo();
 
-    /*还原对当前波形的更改*/
-    void drop()
-    {
-        dataX = historyX.last();
-        dataY = historyY.last();
-    }
+    /**
+     * @brief 能够还原的步数
+     * @return 步数
+     */
+    int count_reDo();
+
+    /**
+     * @brief 放弃当前图像数据(恢复至更改前，一般用于丢弃不保存实时显示数据)
+     */
+    void drop();
+
 protected:
     QList<double> dataX, dataY;
 

@@ -20,6 +20,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     qcustomplot.cpp \
+    wavedata.cpp \
     windowwavedesigner.cpp
 
 HEADERS += \
