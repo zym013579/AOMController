@@ -33,16 +33,16 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     ui->widgetWave->axisRect()->setRangeDrag(Qt::Horizontal);   //设置仅水平拖动和缩放
     ui->widgetWave->axisRect()->setRangeZoom(Qt::Horizontal);
 
-    connect(ui->widgetWave, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(widgetMousePress(QMouseEvent*)));
-    connect(ui->widgetWave, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(widgetMouseRelease(QMouseEvent*)));
-    connect(ui->widgetWave, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(widgetMouseMove(QMouseEvent*)));
+//    connect(ui->widgetWave, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(on_widgetWave_mousePress(QMouseEvent*)));
+//    connect(ui->widgetWave, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(on_widgetWave_mouseRelease(QMouseEvent*)));
+//    connect(ui->widgetWave, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(on_widgetWave_mouseMove(QMouseEvent*)));
 
 //    connect(ui->lineEditPointNumber, SIGNAL(textEdited(QString)), this, SLOT(update_pointNumber(QString)));
 //    connect(ui->lineEditPointTime, SIGNAL(textEdited(QString)), this, SLOT(update_pointData()));
 //    connect(ui->lineEditPointVoltage, SIGNAL(textEdited(QString)), this, SLOT(update_pointData()));
-    connect(ui->lineEditPointNumber, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
-    connect(ui->lineEditPointTime, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
-    connect(ui->lineEditPointVoltage, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
+//    connect(ui->lineEditPointNumber, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
+//    connect(ui->lineEditPointTime, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
+//    connect(ui->lineEditPointVoltage, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
 
     connect(ui->actionUndo, SIGNAL(triggered()), this, SLOT(undo_step()));
     connect(ui->actionRedo, SIGNAL(triggered()), this, SLOT(redo_step()));
@@ -81,6 +81,7 @@ void WindowWaveDesigner::update_pointText()
     }
 }
 
+/* 早期文本框编辑相关事件代码
 void WindowWaveDesigner::check_pointText()
 {
     int i = ui->lineEditPointNumber->text().toInt();
@@ -126,7 +127,6 @@ void WindowWaveDesigner::check_pointText()
     emit save_step();
 }
 
-/* 早期文本框编辑事件代码
 void WindowWaveDesigner::update_pointNumber()
 {
     int i = ui->lineEditPointNumber->text().toInt();
@@ -256,7 +256,7 @@ void WindowWaveDesigner::recieve_waveData(WaveData *data)
     emit update_pointText();
 }
 
-void WindowWaveDesigner::widgetMousePress(QMouseEvent *event)
+void WindowWaveDesigner::on_widgetWave_mousePress(QMouseEvent *event)
 {
     mouseHasMoved = false;
     c_point = -1;
@@ -264,7 +264,7 @@ void WindowWaveDesigner::widgetMousePress(QMouseEvent *event)
         c_point = witch_pointClicked();
 }
 
-void WindowWaveDesigner::widgetMouseRelease(QMouseEvent *event)
+void WindowWaveDesigner::on_widgetWave_mouseRelease(QMouseEvent *event)
 {
     if (!mouseHasMoved)
     {
@@ -277,7 +277,7 @@ void WindowWaveDesigner::widgetMouseRelease(QMouseEvent *event)
     ui->widgetWave->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
 }
 
-void WindowWaveDesigner::widgetMouseMove(QMouseEvent *event)
+void WindowWaveDesigner::on_widgetWave_mouseMove(QMouseEvent *event)
 {
     mouseHasMoved = true;
     if (c_point == -1)
@@ -381,4 +381,57 @@ void WindowWaveDesigner::on_lineEditPointVoltage_textEdited(const QString &arg1)
         return;
     edit->set_y(i, check_data(arg1.toDouble()/100, 0, 1));
     emit update_myGraph();
+}
+
+void WindowWaveDesigner::on_lineEditPointNumber_editingFinished()
+{
+    if (ui->lineEditPointNumber->text().toInt() >= edit->count()) //序号部分
+    {
+        emit choose_point(-1);
+        emit update_pointText();
+        QMessageBox::warning(this, "注意", "点序号超出范围", QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
+    emit save_step();
+}
+
+void WindowWaveDesigner::on_lineEditPointTime_editingFinished()
+{
+    int i = ui->lineEditPointNumber->text().toInt();
+    if (i == 0) //时间部分
+    {
+        if (ui->lineEditPointTime->text().toDouble() != 0)
+        {
+            emit drop_step();
+            QMessageBox::warning(this, "注意", "暂不能更改起始点的时间", QMessageBox::Ok, QMessageBox::Ok);
+            return;
+        }
+    }
+    else
+    {
+        if (ui->lineEditPointTime->text().toDouble() < edit->x_at(i-1)+minDisX)
+        {
+            emit drop_step();
+            QMessageBox::warning(this, "注意", "点时间过小", QMessageBox::Ok, QMessageBox::Ok);
+            return;
+        }
+        if (i < edit->count()-1 && ui->lineEditPointTime->text().toDouble() > edit->x_at(i+1)-minDisX)
+        {
+            emit drop_step();
+            QMessageBox::warning(this, "注意", "点时间过大", QMessageBox::Ok, QMessageBox::Ok);
+            return;
+        }
+    }
+    emit save_step();
+}
+
+void WindowWaveDesigner::on_lineEditPointVoltage_editingFinished()
+{
+    if (ui->lineEditPointVoltage->text().toDouble() > 100)
+    {
+        emit drop_step();
+        QMessageBox::warning(this, "注意", "点电压超出范围", QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
+    emit save_step();
 }

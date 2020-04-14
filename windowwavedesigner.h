@@ -48,7 +48,7 @@ private slots:
     /**
      * @brief 在鼠标焦点离开lineEdit时，检查其中数据的准确性
      */
-    void check_pointText();
+    //void check_pointText();
 
     /**
      * @brief 根据输入的点序号，实时选择点（若存在，此时不提示错误）
@@ -116,19 +116,19 @@ private slots:
      * @brief 鼠标按下事件
      * @param event 事件
      */
-    void widgetMousePress(QMouseEvent *event);
+    void on_widgetWave_mousePress(QMouseEvent *event);
 
     /**
      * @brief 鼠标释放事件
      * @param event 事件
      */
-    void widgetMouseRelease(QMouseEvent *event);
+    void on_widgetWave_mouseRelease(QMouseEvent *event);
 
     /**
      * @brief 鼠标移动事件
      * @param event 事件
      */
-    void widgetMouseMove(QMouseEvent *event);
+    void on_widgetWave_mouseMove(QMouseEvent *event);
 
     void on_pushButtonSave_clicked();
 
@@ -139,6 +139,12 @@ private slots:
     void on_lineEditPointTime_textEdited(const QString &arg1);
 
     void on_lineEditPointVoltage_textEdited(const QString &arg1);
+
+    void on_lineEditPointNumber_editingFinished();
+
+    void on_lineEditPointTime_editingFinished();
+
+    void on_lineEditPointVoltage_editingFinished();
 
 private:
     Ui::WindowWaveDesigner *ui;
