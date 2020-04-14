@@ -33,17 +33,6 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     ui->widgetWave->axisRect()->setRangeDrag(Qt::Horizontal);   //设置仅水平拖动和缩放
     ui->widgetWave->axisRect()->setRangeZoom(Qt::Horizontal);
 
-//    connect(ui->widgetWave, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(on_widgetWave_mousePress(QMouseEvent*)));
-//    connect(ui->widgetWave, SIGNAL(mouseRelease(QMouseEvent*)), this, SLOT(on_widgetWave_mouseRelease(QMouseEvent*)));
-//    connect(ui->widgetWave, SIGNAL(mouseMove(QMouseEvent*)), this, SLOT(on_widgetWave_mouseMove(QMouseEvent*)));
-
-//    connect(ui->lineEditPointNumber, SIGNAL(textEdited(QString)), this, SLOT(update_pointNumber(QString)));
-//    connect(ui->lineEditPointTime, SIGNAL(textEdited(QString)), this, SLOT(update_pointData()));
-//    connect(ui->lineEditPointVoltage, SIGNAL(textEdited(QString)), this, SLOT(update_pointData()));
-//    connect(ui->lineEditPointNumber, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
-//    connect(ui->lineEditPointTime, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
-//    connect(ui->lineEditPointVoltage, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
-
     connect(ui->actionUndo, SIGNAL(triggered()), this, SLOT(undo_step()));
     connect(ui->actionRedo, SIGNAL(triggered()), this, SLOT(redo_step()));
 }
@@ -82,6 +71,13 @@ void WindowWaveDesigner::update_pointText()
 }
 
 /* 早期文本框编辑相关事件代码
+    connect(ui->lineEditPointNumber, SIGNAL(textEdited(QString)), this, SLOT(update_pointNumber(QString)));
+    connect(ui->lineEditPointTime, SIGNAL(textEdited(QString)), this, SLOT(update_pointData()));
+    connect(ui->lineEditPointVoltage, SIGNAL(textEdited(QString)), this, SLOT(update_pointData()));
+    connect(ui->lineEditPointNumber, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
+    connect(ui->lineEditPointTime, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
+    connect(ui->lineEditPointVoltage, SIGNAL(editingFinished()), this, SLOT(check_pointText()));
+
 void WindowWaveDesigner::check_pointText()
 {
     int i = ui->lineEditPointNumber->text().toInt();
