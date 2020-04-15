@@ -1,9 +1,6 @@
 #include "windowwavedesigner.h"
 #include "ui_windowwavedesigner.h"
 
-//QVector<double> WaveData::EditX, WaveData::EditY, WaveData::ModuX, WaveData::ModuY;
-//bool notmove;
-
 WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::WindowWaveDesigner),
@@ -29,7 +26,8 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
 
     ui->widgetWave->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCircle, point_circleSize));
     ui->widgetWave->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);// QCP::iSelectPlottables  QCP::iRangeZoom
-    ui->widgetWave->graph()->setSelectable(QCP::SelectionType::stSingleData);   //仅可选择一个点
+    ui->widgetWave->graph()->setSelectable(QCP::SelectionType::stDataRange);   //仅可选择一个点QCP::SelectionType::stSingleData
+    //ui->widgetWave->setMultiSelectModifier(Qt::KeyboardModifier::ControlModifier);
     ui->widgetWave->axisRect()->setRangeDrag(Qt::Horizontal);   //设置仅水平拖动和缩放
     ui->widgetWave->axisRect()->setRangeZoom(Qt::Horizontal);
 
@@ -229,12 +227,14 @@ int WindowWaveDesigner::witch_pointClicked()
     return ui->widgetWave->graph()->selection().dataRange().begin();
 }
 
-void WindowWaveDesigner::choose_point(int i)
+void WindowWaveDesigner::choose_point(int i, int j)
 {
-    if (i > -1)
+    if (i <= -1)
+        ui->widgetWave->graph()->setSelection(QCPDataSelection());
+    else if (j == -1)
         ui->widgetWave->graph()->setSelection(QCPDataSelection(QCPDataRange(i, i+1)));
     else
-        ui->widgetWave->graph()->setSelection(QCPDataSelection());
+        ui->widgetWave->graph()->setSelection(QCPDataSelection(QCPDataRange(i, j+1)));
     emit update_myGraph();
 }
 
@@ -322,6 +322,8 @@ void WindowWaveDesigner::on_pushButtonNew_clicked()
 void WindowWaveDesigner::on_pushButtonSave_clicked()
 {
     emit send_waveData(edit);
+    // test部分
+    choose_point(ui->lineEditPointNumber->text().toInt(), ui->lineEditFrequency->text().toInt());
 }
 
 void WindowWaveDesigner::on_pushButtonDelete_clicked()
@@ -393,6 +395,12 @@ void WindowWaveDesigner::on_lineEditPointNumber_editingFinished()
 
 void WindowWaveDesigner::on_lineEditPointTime_editingFinished()
 {
+    if (ui->lineEditPointTime->text() != "" && ui->lineEditPointNumber->text() == "")
+    {
+        emit drop_step();
+        QMessageBox::warning(this, "注意", "没有选点", QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
     int i = ui->lineEditPointNumber->text().toInt();
     if (i == 0) //时间部分
     {
@@ -400,29 +408,32 @@ void WindowWaveDesigner::on_lineEditPointTime_editingFinished()
         {
             emit drop_step();
             QMessageBox::warning(this, "注意", "暂不能更改起始点的时间", QMessageBox::Ok, QMessageBox::Ok);
-            return;
         }
+        return; //由于起始点时间总是为0，不需要保存，直接返回
     }
-    else
+    if (ui->lineEditPointTime->text().toDouble() < edit->x_at(i-1)+minDisX)
     {
-        if (ui->lineEditPointTime->text().toDouble() < edit->x_at(i-1)+minDisX)
-        {
-            emit drop_step();
-            QMessageBox::warning(this, "注意", "点时间过小", QMessageBox::Ok, QMessageBox::Ok);
-            return;
-        }
-        if (i < edit->count()-1 && ui->lineEditPointTime->text().toDouble() > edit->x_at(i+1)-minDisX)
-        {
-            emit drop_step();
-            QMessageBox::warning(this, "注意", "点时间过大", QMessageBox::Ok, QMessageBox::Ok);
-            return;
-        }
+        emit drop_step();
+        QMessageBox::warning(this, "注意", "点时间过小", QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
+    if (i < edit->count()-1 && ui->lineEditPointTime->text().toDouble() > edit->x_at(i+1)-minDisX)
+    {
+        emit drop_step();
+        QMessageBox::warning(this, "注意", "点时间过大", QMessageBox::Ok, QMessageBox::Ok);
+        return;
     }
     emit save_step();
 }
 
 void WindowWaveDesigner::on_lineEditPointVoltage_editingFinished()
 {
+    if (ui->lineEditPointVoltage->text() != "" && ui->lineEditPointNumber->text() == "")
+    {
+        emit drop_step();
+        QMessageBox::warning(this, "注意", "没有选点", QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
     if (ui->lineEditPointVoltage->text().toDouble() > 100)
     {
         emit drop_step();

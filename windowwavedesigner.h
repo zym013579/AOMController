@@ -99,10 +99,11 @@ private slots:
     int witch_pointClicked();
 
     /**
-     * @brief 选中某个点
+     * @brief 选中某些点
      * @param i 选中点的序号，其中-1代表取消选点
+     * @param j 默认-1为选单点，否则为选i至j多个点
      */
-    void choose_point(int i);
+    void choose_point(int i, int j = -1);
 
     /**
      * @brief 窗口关闭事件

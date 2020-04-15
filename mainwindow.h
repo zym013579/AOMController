@@ -37,6 +37,14 @@ private slots:
      */
     void recieve_waveData(WaveData *data);
 
+    void connected();
+
+    void disconnected();
+
+    void modulating();
+
+    void modulate_interrupted();
+
     void on_pushButtonEditWave_clicked();
 
     void on_actionAbout_triggered();
@@ -46,8 +54,6 @@ private slots:
     void on_pushButtonSend_clicked();
 
     void on_pushButtonConnect_clicked();
-
-    void connect_success();
 private:
     Ui::MainWindow *ui;
 

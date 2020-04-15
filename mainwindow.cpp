@@ -1,10 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-//QVector<double> WaveData::editX, WaveData::editY, WaveData::moduX, WaveData::moduY, WaveData::tempX, WaveData::tempY;
-//double WaveData::deltaX, WaveData::voltage;
-//WaveData WaveData;
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -27,13 +23,6 @@ MainWindow::~MainWindow()
     delete wAbout;
     delete wDesigner;
     delete ui;
-}
-
-void MainWindow::connect_success()
-{
-    ui->pushButtonStart->setEnabled(true);
-    ui->pushButtonSend->setEnabled(true);
-    ui->lineEditConnectStatus->setText("已连接，未调制");
 }
 
 void init_waveGraph(QCustomPlot *target)
@@ -79,6 +68,32 @@ void MainWindow::recieve_waveData(WaveData *data)
     emit update_myEditGraph();
 }
 
+void MainWindow::connected()
+{
+    ui->pushButtonStart->setEnabled(true);
+    ui->pushButtonSend->setEnabled(true);
+    ui->pushButtonConnect->setText("断开连接");
+    ui->lineEditConnectStatus->setText("已连接，暂停调制");
+}
+
+void MainWindow::disconnected()
+{
+    ui->pushButtonStart->setEnabled(false);
+    ui->pushButtonSend->setEnabled(false);
+    ui->pushButtonConnect->setText("连接下位机");
+    ui->lineEditConnectStatus->setText("连接断开");
+}
+
+void MainWindow::modulating()
+{
+    ;
+}
+
+void MainWindow::modulate_interrupted()
+{
+    ;
+}
+
 void MainWindow::on_pushButtonEditWave_clicked()
 {
     wDesigner->recieve_waveData(edit);
@@ -90,24 +105,39 @@ void MainWindow::on_actionAbout_triggered()
     wAbout->exec();
 }
 
-/*暂时用于测试其他内容*/
 void MainWindow::on_pushButtonStart_clicked()
 {
-    edit->clear();
-    for (int i = 0; i < 10; i++)
+    if (ui->pushButtonStart->text() == "开始调制")
     {
-        edit->add(i/1.0, rand()%2);
+        ui->lineEditConnectStatus->setText("已连接，正在调制");
+        ui->pushButtonStart->setText("暂停调制");
     }
-    emit update_myEditGraph();
+    else
+    {
+        ui->pushButtonStart->setText("开始调制");
+    }
 }
 
 void MainWindow::on_pushButtonSend_clicked()
 {
-    ;
+    //假装发送成功
 }
 
 void MainWindow::on_pushButtonConnect_clicked()
 {
-    //假装连接成功
-    emit connect_success();
+    if (ui->pushButtonConnect->text() == "连接下位机")
+    {
+        //尝试连接
+        if (1) //假装连接成功
+            emit connected();
+        else
+        {
+            ui->lineEditConnectStatus->setText("连接失败");
+        }
+    }
+    else
+    {
+        //断开前操作
+        emit disconnected();
+    }
 }
