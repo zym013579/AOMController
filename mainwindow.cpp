@@ -40,6 +40,16 @@ void update_waveGraph(QCustomPlot *target, QList<double> x, QList<double> y)
     target->replot();
 }
 
+int try_toConnect()
+{
+    return 0;
+}
+
+void search_device()
+{
+    ;
+}
+
 /* 自动设置显示范围
 void reset_waveGraphAxis(QCustomPlot *target)
 {
@@ -140,4 +150,21 @@ void MainWindow::on_pushButtonConnect_clicked()
         //断开前操作
         emit disconnected();
     }
+}
+
+bool MainWindow::nativeEvent(const QByteArray &eventType, void *message, long *result)
+{
+    if (eventType == "windows_generic_MSG")
+    {
+        MSG* msg = reinterpret_cast<MSG*>(message);
+        //PDEV_BROADCAST_HDR lpdb = (PDEV_BROADCAST_HDR)msg->lParam;
+        if (msg->message == WM_DEVICECHANGE && msg->wParam >= DBT_DEVICEARRIVAL)
+        {
+            //search_device();
+            QMessageBox::information(this, "test", "test");
+        }
+    }
+    Q_UNUSED(result);
+    //return QWidget::nativeEvent(eventType, message, result);    //???
+    return false;
 }

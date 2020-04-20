@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "windowwavedesigner.h"
 #include "dialogabout.h"
+#include <dbt.h>
 
 //#include "qcustomplot.h"
 //#include "wavedata.h"
@@ -37,12 +38,24 @@ private slots:
      */
     void recieve_waveData(WaveData *data);
 
+    /**
+     * @brief 连接下位机成功
+     */
     void connected();
 
+    /**
+     * @brief 下位机连接断开、丢失
+     */
     void disconnected();
 
+    /**
+     * @brief 开始调制
+     */
     void modulating();
 
+    /**
+     * @brief 调制状态中断
+     */
     void modulate_interrupted();
 
     void on_pushButtonEditWave_clicked();
@@ -54,6 +67,8 @@ private slots:
     void on_pushButtonSend_clicked();
 
     void on_pushButtonConnect_clicked();
+
+    bool nativeEvent(const QByteArray &eventType, void *message, long *result);
 private:
     Ui::MainWindow *ui;
 
@@ -78,6 +93,17 @@ void init_waveGraph(QCustomPlot *target);
  */
 void update_waveGraph(QCustomPlot *target, QList<double> x, QList<double> y);
 
-double check_data(double input, double min, double max);
+/**
+ * @brief 尝试连接下位机
+ * @return 0成功
+ */
+int try_toConnect();
+
+/**
+ * @brief 扫描串口设备
+ */
+void search_device();
+
+//double check_data(double input, double min, double max);
 
 #endif // MAINWINDOW_H
