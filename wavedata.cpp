@@ -17,12 +17,6 @@ WaveData::WaveData() :
 WaveData::~WaveData()
 {
     this->clear();
-    delete &dataX;
-    delete &dataY;
-    delete &historyX;
-    delete &historyY;
-    delete &futureX;
-    delete &futureY;
 }
 
 QList<double> WaveData::x()

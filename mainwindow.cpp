@@ -7,17 +7,28 @@ MainWindow::MainWindow(QWidget *parent) :
     wDesigner(new WindowWaveDesigner),
     wAbout(new DialogAbout),
     modu(new WaveData),
-    edit(new WaveData)
+    edit(new WaveData),
+    m_serialPortName({}),
+    m_serialPort(new QSerialPort),
+    m_connectStatus(false)
 {
     ui->setupUi(this);
     emit init_waveGraph(ui->widgetModulatingWave);
     emit init_waveGraph(ui->widgetEditingWave);
 
+    emit closePort();
+
+    emit search_device();
+
     connect(wDesigner, SIGNAL(send_waveData(WaveData*)), this, SLOT(recieve_waveData(WaveData*)));
+
+    connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(recieveInfo()));
 }
 
 MainWindow::~MainWindow()
 {
+    closePort();
+    delete m_serialPort;
     delete modu;
     delete edit;
     delete wAbout;
@@ -38,16 +49,6 @@ void update_waveGraph(QCustomPlot *target, QList<double> x, QList<double> y)
 {
     target->graph(0)->setData(x.toVector(), y.toVector());
     target->replot();
-}
-
-int try_toConnect()
-{
-    return 0;
-}
-
-void search_device()
-{
-    ;
 }
 
 /* 自动设置显示范围
@@ -78,6 +79,60 @@ void MainWindow::recieve_waveData(WaveData *data)
     emit update_myEditGraph();
 }
 
+bool MainWindow::openPort()
+{
+    if (!m_serialPort->isOpen())
+        return true;
+    if (ui->comboBoxPort->currentIndex() == 0)
+    {
+        AAA("没选端口");
+        return false;
+    }
+
+    m_serialPort->setPortName(ui->comboBoxPort->currentText());
+    if(!m_serialPort->open(QIODevice::ReadWrite))//用ReadWrite 的模式尝试打开串口
+    {
+        AAA("打开失败");
+        return false;
+    }
+    emit setPortConfig();
+    return true;
+}
+
+void MainWindow::closePort()
+{
+    if (m_serialPort->isOpen())
+    {
+        m_serialPort->clear();
+        m_serialPort->close();
+    }
+}
+
+bool MainWindow::try_toConnect()
+{
+    if (!openPort())
+        return false;
+
+    m_serialPort->write(W_TTL);
+    m_serialPort->waitForBytesWritten(3000);
+    if (!m_serialPort->waitForReadyRead(3000))
+    {
+        AAA("连接超时");
+        closePort();
+        return false;
+    }
+    return true;
+}
+
+void MainWindow::setPortConfig()
+{
+    m_serialPort->setBaudRate(QSerialPort::Baud115200,QSerialPort::AllDirections);//设置波特率和读写方向
+    m_serialPort->setDataBits(QSerialPort::Data8);		//数据位为8位
+    m_serialPort->setFlowControl(QSerialPort::NoFlowControl);//无流控制
+    m_serialPort->setParity(QSerialPort::NoParity);	//无校验位
+    m_serialPort->setStopBits(QSerialPort::OneStop); //一位停止位
+}
+
 void MainWindow::connected()
 {
     ui->pushButtonStart->setEnabled(true);
@@ -100,6 +155,27 @@ void MainWindow::modulating()
 }
 
 void MainWindow::modulate_interrupted()
+{
+    ;
+}
+
+void MainWindow::search_device()
+{
+    m_serialPortName.clear();
+    foreach(const QSerialPortInfo &info,QSerialPortInfo::availablePorts())
+    {
+        m_serialPortName << info.portName();
+        //qDebug()<<"serialPortName:"<<info.portName();
+    }
+    m_serialPortName.sort(Qt::CaseSensitivity::CaseInsensitive);
+    int num = m_serialPortName.indexOf(ui->comboBoxPort->currentText())+1;
+    ui->comboBoxPort->clear();
+    ui->comboBoxPort->addItem("(未指定)");
+    ui->comboBoxPort->addItems(m_serialPortName);
+    ui->comboBoxPort->setCurrentIndex(num);
+}
+
+void MainWindow::recieveInfo()
 {
     ;
 }
@@ -138,12 +214,12 @@ void MainWindow::on_pushButtonConnect_clicked()
     if (ui->pushButtonConnect->text() == "连接下位机")
     {
         //尝试连接
-        if (1) //假装连接成功
-            emit connected();
-        else
+        if (try_toConnect())
         {
-            ui->lineEditConnectStatus->setText("连接失败");
+            emit connected();
+            return;
         }
+        AAA("连接失败");
     }
     else
     {
@@ -161,7 +237,8 @@ bool MainWindow::nativeEvent(const QByteArray &eventType, void *message, long *r
         if (msg->message == WM_DEVICECHANGE && msg->wParam >= DBT_DEVICEARRIVAL)
         {
             //search_device();
-            QMessageBox::information(this, "test", "test");
+            //QMessageBox::information(this, "test", "test");
+            emit search_device();
         }
     }
     Q_UNUSED(result);

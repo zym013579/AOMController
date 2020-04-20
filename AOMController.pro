@@ -1,4 +1,4 @@
-QT       += core gui printsupport
+QT       += core gui printsupport serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -27,6 +27,7 @@ HEADERS += \
     dialogabout.h \
     mainwindow.h \
     qcustomplot.h \
+    signal.h \
     wavedata.h \
     windowwavedesigner.h
 

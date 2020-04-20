@@ -2,9 +2,14 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSerialPort>
+#include <QSerialPortInfo>
+
 #include "windowwavedesigner.h"
 #include "dialogabout.h"
+#include "signal.h"
 #include <dbt.h>
+
 
 //#include "qcustomplot.h"
 //#include "wavedata.h"
@@ -38,6 +43,21 @@ private slots:
      */
     void recieve_waveData(WaveData *data);
 
+    bool openPort();
+
+    void closePort();
+
+    /**
+     * @brief 尝试连接下位机
+     * @return 0成功
+     */
+    bool try_toConnect();
+
+    /**
+     * @brief 设置串口参数
+     */
+    void setPortConfig();
+
     /**
      * @brief 连接下位机成功
      */
@@ -58,6 +78,16 @@ private slots:
      */
     void modulate_interrupted();
 
+    /**
+     * @brief 扫描串口设备
+     */
+    void search_device();
+
+    /**
+     * @brief 接收下位机信息
+     */
+    void recieveInfo();
+
     void on_pushButtonEditWave_clicked();
 
     void on_actionAbout_triggered();
@@ -77,6 +107,12 @@ private:
     DialogAbout *wAbout;
 
     WaveData *modu, *edit;
+
+    QStringList m_serialPortName;
+
+    QSerialPort *m_serialPort;
+
+    bool m_connectStatus;
 };
 
 /**
@@ -92,17 +128,6 @@ void init_waveGraph(QCustomPlot *target);
  * @param y y轴数据
  */
 void update_waveGraph(QCustomPlot *target, QList<double> x, QList<double> y);
-
-/**
- * @brief 尝试连接下位机
- * @return 0成功
- */
-int try_toConnect();
-
-/**
- * @brief 扫描串口设备
- */
-void search_device();
 
 //double check_data(double input, double min, double max);
 
