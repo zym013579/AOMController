@@ -33,7 +33,7 @@ class WindowWaveDesigner : public QMainWindow
     Q_OBJECT
 
 public slots:
-    void recieve_waveData(WaveData *data);
+    void recieveWaveData(WaveData *data);
 
 public:
     explicit WindowWaveDesigner(QWidget *parent = nullptr);
@@ -104,7 +104,7 @@ private slots:
     int witchPointclicked();
 
     /**
-     * @brief 选中某些点
+     * @brief 选中某些点，自带updateGraph、updateLineEditText
      * @param i 选中点的序号，其中-1代表取消选点
      * @param j 默认-1为选单点，否则为选i至j多个点
      */
@@ -165,7 +165,7 @@ private:
     int c_point;
 
 signals:
-    void sendWavedata(WaveData *data);
+    void sendWaveData(WaveData *data);
 };
 
 void initWaveGraph(QCustomPlot *target);

@@ -18,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     emit closePort();
     emit searchDevice();
 
-    connect(wDesigner, SIGNAL(send_waveData(WaveData*)), this, SLOT(recieveWaveData(WaveData*)));
+    connect(wDesigner, SIGNAL(sendWaveData(WaveData*)), this, SLOT(recieveWaveData(WaveData*)));
     connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(recieveDeviceInfo()));
 }
 
@@ -167,7 +167,7 @@ void MainWindow::recieveDeviceInfo()
 
 void MainWindow::on_pushButtonEditWave_clicked()
 {
-    wDesigner->recieve_waveData(edit);
+    wDesigner->recieveWaveData(edit);
     wDesigner->show();
 }
 
