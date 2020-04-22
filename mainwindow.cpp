@@ -9,20 +9,17 @@ MainWindow::MainWindow(QWidget *parent) :
     modu(new WaveData),
     edit(new WaveData),
     m_serialPortName({}),
-    m_serialPort(new QSerialPort),
-    m_connectStatus(false)
+    m_serialPort(new QSerialPort)
 {
     ui->setupUi(this);
-    emit init_waveGraph(ui->widgetModulatingWave);
-    emit init_waveGraph(ui->widgetEditingWave);
+    emit initWaveGraph(ui->widgetModulatingWave);
+    emit initWaveGraph(ui->widgetEditingWave);
 
     emit closePort();
+    emit searchDevice();
 
-    emit search_device();
-
-    connect(wDesigner, SIGNAL(send_waveData(WaveData*)), this, SLOT(recieve_waveData(WaveData*)));
-
-    connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(recieveInfo()));
+    connect(wDesigner, SIGNAL(send_waveData(WaveData*)), this, SLOT(recieveWaveData(WaveData*)));
+    connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(recieveDeviceInfo()));
 }
 
 MainWindow::~MainWindow()
@@ -36,7 +33,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void init_waveGraph(QCustomPlot *target)
+void initWaveGraph(QCustomPlot *target)
 {
     target->clearGraphs();
     target->addGraph();
@@ -45,57 +42,53 @@ void init_waveGraph(QCustomPlot *target)
     target->replot();
 }
 
-void update_waveGraph(QCustomPlot *target, QList<double> x, QList<double> y)
+void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y)
 {
     target->graph(0)->setData(x.toVector(), y.toVector());
     target->replot();
 }
 
-/* 自动设置显示范围
-void reset_waveGraphAxis(QCustomPlot *target)
-{
-    //target->rescaleAxes();
-    qDebug() << target->graph();
-    qDebug() << target->graph()->data()->end()->key;
-    target->xAxis->setRange(0, MAX(5, target->graph()->data()->end()->value));
-    target->replot();
-}*/
-
-void MainWindow::update_myModuGraph()
+void MainWindow::updateModuGraph()
 {
     ui->widgetModulatingWave->xAxis->setRange(0, modu->x_at(modu->count()-1));
-    emit update_waveGraph(ui->widgetModulatingWave, modu->x(), modu->y());
+    emit updateWaveGraph(ui->widgetModulatingWave, modu->x(), modu->y());
 }
 
-void MainWindow::update_myEditGraph()
+void MainWindow::updateEditGraph()
 {
     ui->widgetEditingWave->xAxis->setRange(0, edit->x_at(edit->count()-1));
-    emit update_waveGraph(ui->widgetEditingWave, edit->x(), edit->y());
+    emit updateWaveGraph(ui->widgetEditingWave, edit->x(), edit->y());
 }
 
-void MainWindow::recieve_waveData(WaveData *data)
+void MainWindow::recieveWaveData(WaveData *data)
 {
     edit->copyData(data);
-    emit update_myEditGraph();
+    emit updateEditGraph();
 }
 
 bool MainWindow::openPort()
 {
-    if (!m_serialPort->isOpen())
+    if (m_serialPort->isOpen())
         return true;
     if (ui->comboBoxPort->currentIndex() == 0)
     {
-        AAA("没选端口");
+        MSG_WARNING("没选端口");
         return false;
     }
 
     m_serialPort->setPortName(ui->comboBoxPort->currentText());
     if(!m_serialPort->open(QIODevice::ReadWrite))//用ReadWrite 的模式尝试打开串口
     {
-        AAA("打开失败");
+        closePort();
+        MSG_WARNING("打开失败");
         return false;
     }
     emit setPortConfig();
+    ui->pushButtonStart->setEnabled(true);
+    ui->pushButtonSend->setEnabled(true);
+    ui->pushButtonConnect->setText("断开连接");
+    ui->comboBoxPort->setEnabled(false);
+    LINEEDIT_INFO("已连接");
     return true;
 }
 
@@ -106,19 +99,27 @@ void MainWindow::closePort()
         m_serialPort->clear();
         m_serialPort->close();
     }
+    ui->pushButtonStart->setEnabled(false);
+    ui->pushButtonSend->setEnabled(false);
+    ui->pushButtonConnect->setText("连接下位机");
+    ui->comboBoxPort->setEnabled(true);
+    LINEEDIT_INFO("连接断开");
 }
 
-bool MainWindow::try_toConnect()
+bool MainWindow::connectionTest()
 {
     if (!openPort())
+    {
+        MSG_WARNING("端口未打开");
         return false;
+    }
 
-    m_serialPort->write(W_TTL);
+    m_serialPort->write("W_TTL");
     m_serialPort->waitForBytesWritten(3000);
     if (!m_serialPort->waitForReadyRead(3000))
     {
-        AAA("连接超时");
         closePort();
+        MSG_WARNING("连接超时");
         return false;
     }
     return true;
@@ -133,22 +134,6 @@ void MainWindow::setPortConfig()
     m_serialPort->setStopBits(QSerialPort::OneStop); //一位停止位
 }
 
-void MainWindow::connected()
-{
-    ui->pushButtonStart->setEnabled(true);
-    ui->pushButtonSend->setEnabled(true);
-    ui->pushButtonConnect->setText("断开连接");
-    ui->lineEditConnectStatus->setText("已连接，暂停调制");
-}
-
-void MainWindow::disconnected()
-{
-    ui->pushButtonStart->setEnabled(false);
-    ui->pushButtonSend->setEnabled(false);
-    ui->pushButtonConnect->setText("连接下位机");
-    ui->lineEditConnectStatus->setText("连接断开");
-}
-
 void MainWindow::modulating()
 {
     ;
@@ -159,7 +144,7 @@ void MainWindow::modulate_interrupted()
     ;
 }
 
-void MainWindow::search_device()
+void MainWindow::searchDevice()
 {
     m_serialPortName.clear();
     foreach(const QSerialPortInfo &info,QSerialPortInfo::availablePorts())
@@ -175,7 +160,7 @@ void MainWindow::search_device()
     ui->comboBoxPort->setCurrentIndex(num);
 }
 
-void MainWindow::recieveInfo()
+void MainWindow::recieveDeviceInfo()
 {
     ;
 }
@@ -195,7 +180,7 @@ void MainWindow::on_pushButtonStart_clicked()
 {
     if (ui->pushButtonStart->text() == "开始调制")
     {
-        ui->lineEditConnectStatus->setText("已连接，正在调制");
+        LINEEDIT_INFO("已开始调制");
         ui->pushButtonStart->setText("暂停调制");
     }
     else
@@ -206,40 +191,67 @@ void MainWindow::on_pushButtonStart_clicked()
 
 void MainWindow::on_pushButtonSend_clicked()
 {
-    //假装发送成功
+    if (!m_serialPort->isOpen() && !connectionTest())
+    {
+        emit closePort();
+        MSG_WARNING("下位机连接失败，自动断开连接");
+    }
+    QByteArray sendInfo; //要发送的数据
+
+    //数据处理部分未完成
+    sendInfo = "\x00";
+
+    m_serialPort->write(sendInfo, 1);
+    if (!m_serialPort->waitForBytesWritten(5000))
+    {
+        LINEEDIT_INFO("发送超时");
+        MSG_WARNING("发送超时");
+    }
+    else
+    {
+        LINEEDIT_INFO("已发送");
+    }
 }
 
 void MainWindow::on_pushButtonConnect_clicked()
 {
     if (ui->pushButtonConnect->text() == "连接下位机")
     {
-        //尝试连接
-        if (try_toConnect())
+        if (!openPort())
         {
-            emit connected();
+            MSG_WARNING("打开端口失败");
             return;
         }
-        AAA("连接失败");
+        if (!connectionTest())
+        {
+            closePort();
+            MSG_WARNING("连接下位机失败");
+            return;
+        }
+        //尝试连接
     }
     else
     {
-        //断开前操作
-        emit disconnected();
+        emit closePort();
     }
 }
 
 bool MainWindow::nativeEvent(const QByteArray &eventType, void *message, long *result)
 {
+    QString tmp = ui->comboBoxPort->currentText();
     if (eventType == "windows_generic_MSG")
     {
         MSG* msg = reinterpret_cast<MSG*>(message);
         //PDEV_BROADCAST_HDR lpdb = (PDEV_BROADCAST_HDR)msg->lParam;
         if (msg->message == WM_DEVICECHANGE && msg->wParam >= DBT_DEVICEARRIVAL)
         {
-            //search_device();
-            //QMessageBox::information(this, "test", "test");
-            emit search_device();
+            emit searchDevice();
         }
+    }
+    if (tmp != "(未指定)" && ui->comboBoxPort->currentText() == "(未指定)")
+    {
+        closePort();
+        MSG_WARNING("设备连接丢失");
     }
     Q_UNUSED(result);
     //return QWidget::nativeEvent(eventType, message, result);    //???

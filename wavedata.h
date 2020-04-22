@@ -1,8 +1,6 @@
 #ifndef WAVEDATA_H
 #define WAVEDATA_H
 
-//define WAVELENGTH 100001
-
 #include <QList>
 
 /**

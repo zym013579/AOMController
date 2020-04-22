@@ -182,8 +182,8 @@
     <property name="title">
      <string>菜单</string>
     </property>
-    <addaction name="actionOpenWave"/>
     <addaction name="actionEditWave"/>
+    <addaction name="actionSetting"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -197,11 +197,6 @@
    <addaction name="menuAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionOpenWave">
-   <property name="text">
-    <string>打开波形文件</string>
-   </property>
-  </action>
   <action name="actionEditWave">
    <property name="text">
     <string>波形编辑器</string>
@@ -215,6 +210,11 @@
   <action name="actionExit">
    <property name="text">
     <string>退出</string>
+   </property>
+  </action>
+  <action name="actionSetting">
+   <property name="text">
+    <string>参数设置</string>
    </property>
   </action>
  </widget>

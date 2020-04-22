@@ -7,16 +7,19 @@
 #define X_VAL (ui->widgetWave->xAxis->pixelToCoord(event->pos().x()))
 #define Y_VAL (ui->widgetWave->yAxis->pixelToCoord(event->pos().y()))
 
-#define X_RANGE ((ui->widgetWave->width()-34-15)/30.0*5/ui->widgetWave->xAxis->range().size()*11/point_circleSize)
-#define Y_RANGE ((ui->widgetWave->height()-14-24)/6.2/ui->widgetWave->yAxis->range().size()*11/point_circleSize)
+#define X_RANGE ((ui->widgetWave->width()-34-15)/30.0*5/ui->widgetWave->xAxis->range().size()*11/POINT_CIRCLE_SIZE)
+#define Y_RANGE ((ui->widgetWave->height()-14-24)/6.2/ui->widgetWave->yAxis->range().size()*11/POINT_CIRCLE_SIZE)
 
-#define AAA(x) (QMessageBox::warning(this, "提示", x, QMessageBox::Ok, QMessageBox::Ok))
+#define MSG_WARNING(message) (QMessageBox::warning(this, "提示", message, QMessageBox::Ok, QMessageBox::Ok))
+
+#define POINT_CIRCLE_SIZE 13
+#define DEFAULT_X_DIS 0.5
+#define MIN_X_DIS 0.01
 
 #include <QMainWindow>
-#include <QCloseEvent>
+
 #include <QMessageBox>
-//#include <QtDebug>
-#include <QtMath>
+#include <QCloseEvent>
 
 #include "qcustomplot.h"
 #include "wavedata.h"
@@ -40,24 +43,24 @@ private slots:
     /**
      * @brief 更新本窗口的图像
      */
-    void update_myGraph();
+    void updateGraph();
 
     /**
      * @brief 根据鼠标选点或拖动操作的结果，来更新lineEdit中显示的数据
      */
-    void update_pointText();
+    void updateLineEditText();
 
-    /**
+    /*
      * @brief 在鼠标焦点离开lineEdit时，检查其中数据的准确性
      */
     //void check_pointText();
 
-    /**
+    /*
      * @brief 根据输入的点序号，实时选择点（若存在，此时不提示错误）
      */
     //void update_pointNumber();
 
-    /**
+    /*
      * @brief 根据输入的点数据，实时更新图像（若存在，此时不提示错误）
      */
     //void update_pointData();
@@ -65,47 +68,47 @@ private slots:
     /**
      * @brief 保存当前图形至历史记录
      */
-    void save_step();
+    void saveStep();
 
     /**
      * @brief 放弃对当前图形的更改
      */
-    void drop_step();
+    void dropStep();
 
     /**
      * @brief 撤销一步
      */
-    void undo_step();
+    void undoStep();
 
     /**
      * @brief 还原一步
      */
-    void redo_step();
+    void redoStep();
 
     /**
      * @brief 改变“撤销”“恢复”按钮的可用状态
      */
-    void fresh_undo_redo_button();
+    void freshUndoRedoButton();
 
     /**
      * @brief 检测当前是否点击了某点
      * @param event 鼠标点击事件QMouseEvent
      * @return 点击的点序号，若未点击返回-1
      */
-    int if_pointClicked(QMouseEvent *event);
+    int witchPointclicking(QMouseEvent *event);
 
     /**
      * @brief 是否有点被选中
      * @return 被选中的点序号，若未选中返回-1
      */
-    int witch_pointClicked();
+    int witchPointclicked();
 
     /**
      * @brief 选中某些点
      * @param i 选中点的序号，其中-1代表取消选点
      * @param j 默认-1为选单点，否则为选i至j多个点
      */
-    void choose_point(int i, int j = -1);
+    void choosePoint(int i, int j = -1);
 
     /**
      * @brief 窗口关闭事件
@@ -159,17 +162,15 @@ private:
     /**
      * @param c_point 点击已选中的点时改变值
      */
-    int c_point, point_circleSize;
-
-    double disX, minDisX;
+    int c_point;
 
 signals:
-    void send_waveData(WaveData *data);
+    void sendWavedata(WaveData *data);
 };
 
-void init_waveGraph(QCustomPlot *target);
+void initWaveGraph(QCustomPlot *target);
 
-void update_waveGraph(QCustomPlot *target, QList<double> x, QList<double> y);
+void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y);
 
 /**
  * @brief 检测输入数据是否超出范围
@@ -178,6 +179,6 @@ void update_waveGraph(QCustomPlot *target, QList<double> x, QList<double> y);
  * @param max 范围最大值
  * @return 若输入值在区间内则返回输入值，否则返回临界值
  */
-double check_data(double input, double min, double max);
+double checkData(double input, double min, double max);
 
 #endif // WINDOWWAVEDESIGNER_H
