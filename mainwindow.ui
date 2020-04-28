@@ -94,7 +94,7 @@
        <item row="2" column="0">
         <widget class="QLabel" name="labelFrequencyStatus">
          <property name="text">
-          <string>调制频率(单位时间)：</string>
+          <string>调制频率：</string>
          </property>
         </widget>
        </item>

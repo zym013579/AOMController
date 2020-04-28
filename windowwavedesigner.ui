@@ -27,7 +27,7 @@
        <enum>Qt::ClickFocus</enum>
       </property>
       <property name="title">
-       <string>器件参数</string>
+       <string>当前器件参数</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_5">
        <item row="0" column="0">
@@ -41,7 +41,11 @@
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEditFrequency"/>
+        <widget class="QLineEdit" name="lineEditFrequency">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="labelMaxVoltage">
@@ -49,12 +53,16 @@
           <enum>Qt::ClickFocus</enum>
          </property>
          <property name="text">
-          <string>最大电压：</string>
+          <string>电压量化位数：</string>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEditMaxVoltage"/>
+        <widget class="QLineEdit" name="lineEditMaxVoltage">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
@@ -105,7 +113,7 @@
           <enum>Qt::ClickFocus</enum>
          </property>
          <property name="text">
-          <string>点时间：</string>
+          <string>点时间(us)：</string>
          </property>
         </widget>
        </item>
@@ -212,7 +220,6 @@
     <addaction name="actionCut"/>
     <addaction name="actionPasteLast"/>
     <addaction name="actionPasteInsert"/>
-    <addaction name="actionDelete"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -231,6 +238,9 @@
   <action name="actionSave">
    <property name="text">
     <string>保存</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="actionExit">
@@ -269,15 +279,24 @@
    <property name="text">
     <string>新建点</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
   </action>
   <action name="actionInsertPoint">
    <property name="text">
     <string>插入点</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
   </action>
   <action name="actionDeletePoint">
    <property name="text">
     <string>删除点</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="actionCopy">
@@ -302,11 +321,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+V</string>
-   </property>
-  </action>
-  <action name="actionDelete">
-   <property name="text">
-    <string>删除</string>
    </property>
   </action>
   <action name="actionPasteInsert">

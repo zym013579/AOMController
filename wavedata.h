@@ -3,6 +3,8 @@
 
 #include <QList>
 
+#define REAL_TIME_QUALITIFY true
+
 /**
  * @brief 一张图表对应一个WaveData，函数均不检验输入是否正确，若出错则为程序逻辑错误
  */
@@ -131,7 +133,15 @@ public:
      */
     void drop();
 
+    void setDisX(double x);
+
+    void setDisY(double y);
+
+    void qualitify(double x = -1, double y = -1);
+
 protected:
+    double disX, disY;
+
     QList<double> dataX, dataY;
 
     QList<QList<double>> historyX, historyY, futureX, futureY;

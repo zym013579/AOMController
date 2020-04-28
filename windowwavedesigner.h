@@ -13,8 +13,9 @@
 #define MSG_WARNING(message) (QMessageBox::warning(this, "提示", message, QMessageBox::Ok, QMessageBox::Ok))
 
 #define POINT_CIRCLE_SIZE 13
-#define DEFAULT_X_DIS 0.5
-#define MIN_X_DIS 0.01
+#define DEFAULT_X_DIS ((ui->widgetWave->graph()->dataCount()-1)?(ui->widgetWave->graph()->data()->at(ui->widgetWave->graph()->dataCount()-1)->key/(ui->widgetWave->graph()->dataCount()-1)):5)
+#define MIN_X_DIS 1
+#define MIN_Y_DIS 1.0/4096.0
 
 #include <QMainWindow>
 
@@ -49,21 +50,6 @@ private slots:
      * @brief 根据鼠标选点或拖动操作的结果，来更新lineEdit中显示的数据
      */
     void updateLineEditText();
-
-    /*
-     * @brief 在鼠标焦点离开lineEdit时，检查其中数据的准确性
-     */
-    //void check_pointText();
-
-    /*
-     * @brief 根据输入的点序号，实时选择点（若存在，此时不提示错误）
-     */
-    //void update_pointNumber();
-
-    /*
-     * @brief 根据输入的点数据，实时更新图像（若存在，此时不提示错误）
-     */
-    //void update_pointData();
 
     /**
      * @brief 保存当前图形至历史记录
@@ -151,6 +137,8 @@ private slots:
     void on_lineEditPointTime_editingFinished();
 
     void on_lineEditPointVoltage_editingFinished();
+
+    void on_pushButtonInsert_clicked();
 
 private:
     Ui::WindowWaveDesigner *ui;

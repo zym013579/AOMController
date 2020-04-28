@@ -20,6 +20,8 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     ui->lineEditPointVoltage->setValidator(new QRegExpValidator(regExpUDouble, ui->lineEditPointVoltage));
 
     emit initWaveGraph(ui->widgetWave);
+    edit->setDisX(MIN_X_DIS);
+    edit->setDisY(MIN_Y_DIS);
 
     ui->widgetWave->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCircle, POINT_CIRCLE_SIZE));
     ui->widgetWave->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);// QCP::iSelectPlottables  QCP::iRangeZoom
@@ -149,7 +151,7 @@ void WindowWaveDesigner::recieveWaveData(WaveData *data)
     if (edit->count() > 1)
         ui->widgetWave->xAxis->setRange(-0.05*edit->x_at(edit->count()-1), 1.05*edit->x_at(edit->count()-1));
     else
-        ui->widgetWave->xAxis->setRange(-0.25, 5);  //tmp
+        ui->widgetWave->xAxis->setRange(-0.25, 20.2);  //tmp
     emit choosePoint(-1);
 }
 
@@ -201,8 +203,7 @@ void WindowWaveDesigner::closeEvent(QCloseEvent *event)
         emit on_pushButtonSave_clicked();
     else if (result == QMessageBox::Save)
         ;
-    else if (result == QMessageBox::Discard)
-        ;
+    //else if (result == QMessageBox::Discard) ;
     else if (result == QMessageBox::Cancel)
         event->ignore();
     return;
@@ -210,11 +211,20 @@ void WindowWaveDesigner::closeEvent(QCloseEvent *event)
 
 void WindowWaveDesigner::on_pushButtonNew_clicked()
 {
+    edit->add(edit->x_at(edit->count()-1)+DEFAULT_X_DIS, edit->y_at(edit->count()-1));
+    emit saveStep();
+    emit updateGraph();
+}
+
+void WindowWaveDesigner::on_pushButtonInsert_clicked()
+{
     int i = witchPointclicked();
     if (i == -1 || i == edit->count()-1)
-        edit->add(edit->x_at(edit->count()-1)+DEFAULT_X_DIS, edit->y_at(edit->count()-1));
+        emit on_pushButtonNew_clicked();
     else if (edit->x_at(i+1)-edit->x_at(i) > 10*MIN_X_DIS)
         edit->insert(i+1, (edit->x_at(i+1)+edit->x_at(i))/2.0, edit->y_at(i));
+    else
+        MSG_WARNING("两点间距过小，不能插入");
     emit saveStep();
     emit updateGraph();
 }
@@ -224,6 +234,7 @@ void WindowWaveDesigner::on_pushButtonSave_clicked()
     emit sendWaveData(edit);
     // test部分
     //choosePoint(ui->lineEditPointNumber->text().toInt(), ui->lineEditFrequency->text().toInt());
+    //qDebug() << ui->widgetWave->graph()->data()->at(ui->widgetWave->graph()->dataCount()-1)->key/(ui->widgetWave->graph()->dataCount()-1);
 }
 
 void WindowWaveDesigner::on_pushButtonDelete_clicked()
@@ -319,6 +330,7 @@ void WindowWaveDesigner::on_lineEditPointTime_editingFinished()
         MSG_WARNING("点时间过大");
         return;
     }
+    emit updateLineEditText();
     emit saveStep();
 }
 
@@ -336,5 +348,6 @@ void WindowWaveDesigner::on_lineEditPointVoltage_editingFinished()
         MSG_WARNING("点电压超出范围");
         return;
     }
+    emit updateLineEditText();
     emit saveStep();
 }

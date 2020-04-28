@@ -10,6 +10,7 @@
 
 #include "windowwavedesigner.h"
 #include "dialogabout.h"
+#include "dialogsetting.h"
 #include "dbt.h"
 
 #include "qcustomplot.h"
@@ -30,6 +31,10 @@ public:
 
 private slots:
     /**
+     * @brief 对特定单片机所编写的特定设置选项
+     */
+    void customizeSettings();
+    /**
      * @brief 更新本窗口的正在调制图像
      */
     void updateModuGraph();
@@ -43,7 +48,7 @@ private slots:
      * @brief 接收波形信息
      * @param data 传入的波形信息
      */
-    void recieveWaveData(WaveData *data);
+    void recieveWaveDataFromEditor(WaveData *data);
 
     /**
      * @brief 打开端口
@@ -57,25 +62,9 @@ private slots:
     void closePort();
 
     /**
-     * @brief 尝试连接下位机
-     * @return 0成功
-     */
-    bool connectionTest();
-
-    /**
      * @brief 设置串口参数
      */
     void setPortConfig();
-
-    /**
-     * @brief 开始调制
-     */
-    void modulating();
-
-    /**
-     * @brief 调制状态中断
-     */
-    void modulate_interrupted();
 
     /**
      * @brief 扫描串口设备
@@ -84,8 +73,13 @@ private slots:
 
     /**
      * @brief 接收下位机信息
+     * @return 是否成功
      */
-    void recieveDeviceInfo();
+    bool recieveDeviceInfo(int timeout = 3000);
+
+    bool sendToDevice(QByteArray *data, int length = -1, int timeout = 3000);
+
+    bool sendCommandToDevice(QString command);
 
     void on_pushButtonEditWave_clicked();
 
@@ -112,11 +106,15 @@ private:
 
     DialogAbout *wAbout;
 
+    DialogSetting *wSetting;
+
     WaveData *modu, *edit;
 
     QStringList m_serialPortName;
 
     QSerialPort *m_serialPort;
+
+    bool connectError;
 };
 
 /**
