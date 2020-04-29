@@ -11,9 +11,14 @@ MainWindow::MainWindow(QWidget *parent) :
     edit(new WaveData),
     m_serialPortName({}),
     m_serialPort(new QSerialPort),
-    connectError(false)
+    connectError(false),
+    realTimeQuantify(DEFAULT_REALTIME_QUANTIFY),
+    volQuantiLevel(DEFAULT_VOL_QUANTIFY_LEVEL),
+    minDeltaTime(DEFAULT_MIN_DELTA_TIME)
 {
     ui->setupUi(this);
+
+    emit defaultSettingsInit();
     emit initWaveGraph(ui->widgetModulatingWave);
     emit initWaveGraph(ui->widgetEditingWave);
 
@@ -21,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     emit searchDevice();
 
     connect(wDesigner, SIGNAL(sendWaveData(WaveData*)), this, SLOT(recieveWaveDataFromEditor(WaveData*)));
+    connect(wSetting, SIGNAL(sendSettings()), this, SLOT(recieveSettings()));
     //connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(recieveDeviceInfo()));
 }
 
@@ -36,9 +42,13 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::customizeSettings()
+void MainWindow::defaultSettingsInit()
 {
-    ;
+    wDesigner->realTimeQuantify = realTimeQuantify;    //传递信息
+    wDesigner->minDeltaTime = minDeltaTime;
+    wDesigner->minDeltaVoltage = 1.0/volQuantiLevel;
+    ui->lineEditVoltageStatus->setText(QString::number(volQuantiLevel));
+    ui->lineEditFrequencyStatus->setText(QString::number(minDeltaTime));
 }
 
 void MainWindow::updateModuGraph()
@@ -203,8 +213,20 @@ bool MainWindow::sendCommandToDevice(QString command)
     }
 }
 
+void MainWindow::recieveSettings(bool rTQ, int vQL, double mDT)
+{
+    realTimeQuantify = rTQ;
+    volQuantiLevel = vQL;
+    minDeltaTime = mDT;
+    ui->lineEditVoltageStatus->setText(QString::number(volQuantiLevel));
+    ui->lineEditFrequencyStatus->setText(QString::number(minDeltaTime));
+}
+
 void MainWindow::on_pushButtonEditWave_clicked()
 {
+    wDesigner->realTimeQuantify = realTimeQuantify;    //传递信息
+    wDesigner->minDeltaTime = minDeltaTime;
+    wDesigner->minDeltaVoltage = 1.0/volQuantiLevel;
     wDesigner->recieveWaveData(edit);
     wDesigner->show();
 }
@@ -261,12 +283,16 @@ void MainWindow::on_pushButtonConnect_clicked()
             MSG_WARNING("连接下位机失败");
             return;
         }
-        //尝试连接
     }
     else
     {
         emit closePort();
     }
+}
+
+void MainWindow::on_actionSetting_triggered()
+{
+    wSetting->exec();
 }
 
 bool MainWindow::nativeEvent(const QByteArray &eventType, void *message, long *result)
@@ -306,3 +332,4 @@ void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y)
     target->graph(0)->setData(x.toVector(), y.toVector());
     target->replot();
 }
+

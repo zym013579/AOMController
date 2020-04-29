@@ -3,10 +3,14 @@
 
 WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     QMainWindow(parent),
+    realTimeQuantify(DEFAULT_REALTIME_QUANTIFY),
+    minDeltaTime(DEFAULT_MIN_DELTA_TIME),
+    minDeltaVoltage(1.0/DEFAULT_VOL_QUANTIFY_LEVEL),
     ui(new Ui::WindowWaveDesigner),
     edit(new WaveData),
     mouseHasMoved(false),
     c_point(-1)    //选中已选择的点时改变值
+
 {
     ui->setupUi(this);
 
@@ -20,8 +24,8 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     ui->lineEditPointVoltage->setValidator(new QRegExpValidator(regExpUDouble, ui->lineEditPointVoltage));
 
     emit initWaveGraph(ui->widgetWave);
-    edit->setDisX(MIN_X_DIS);
-    edit->setDisY(MIN_Y_DIS);
+    //edit->setDisX(MIN_X_DIS);
+    //edit->setDisY(MIN_Y_DIS);
 
     ui->widgetWave->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCircle, POINT_CIRCLE_SIZE));
     ui->widgetWave->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);// QCP::iSelectPlottables  QCP::iRangeZoom
@@ -146,6 +150,8 @@ void WindowWaveDesigner::choosePoint(int i, int j)
 void WindowWaveDesigner::recieveWaveData(WaveData *data)
 {
     edit->clear();
+    edit->setRealTimeQuantify(realTimeQuantify);
+    edit->quantify(minDeltaTime, minDeltaVoltage);
     edit->copyData(data);
     emit freshUndoRedoButton();
     if (edit->count() > 1)
@@ -186,9 +192,9 @@ void WindowWaveDesigner::on_widgetWave_mouseMove(QMouseEvent *event)
     if (c_point == 0)
         x_val = 0;
     else if (c_point != edit->count()-1)
-        x_val = checkData(X_VAL, edit->x_at(c_point-1)+MIN_X_DIS, edit->x_at(c_point+1)-MIN_X_DIS);
+        x_val = checkData(X_VAL, edit->x_at(c_point-1)+minDeltaTime, edit->x_at(c_point+1)-minDeltaTime);
     else
-        x_val = MAX(edit->x_at(c_point-1)+MIN_X_DIS, X_VAL);
+        x_val = MAX(edit->x_at(c_point-1)+minDeltaTime, X_VAL);
     edit->set(c_point, x_val, checkData(Y_VAL, 0, 1));
     emit updateGraph();
     emit updateLineEditText();
@@ -221,7 +227,7 @@ void WindowWaveDesigner::on_pushButtonInsert_clicked()
     int i = witchPointclicked();
     if (i == -1 || i == edit->count()-1)
         emit on_pushButtonNew_clicked();
-    else if (edit->x_at(i+1)-edit->x_at(i) > 10*MIN_X_DIS)
+    else if (edit->x_at(i+1)-edit->x_at(i) > 10*minDeltaTime)
         edit->insert(i+1, (edit->x_at(i+1)+edit->x_at(i))/2.0, edit->y_at(i));
     else
         MSG_WARNING("两点间距过小，不能插入");
@@ -276,7 +282,7 @@ void WindowWaveDesigner::on_lineEditPointTime_textEdited(const QString &arg1)
     if (i == edit->count()-1)
         edit->set_x(i, MAX(edit->x_at(i-1), arg1.toDouble()));
     else
-        edit->set_x(i, checkData(arg1.toDouble(), edit->x_at(i-1)+MIN_X_DIS, edit->x_at(i+1)-MIN_X_DIS));
+        edit->set_x(i, checkData(arg1.toDouble(), edit->x_at(i-1)+minDeltaTime, edit->x_at(i+1)-minDeltaTime));
     emit updateGraph();
 }
 
@@ -318,13 +324,13 @@ void WindowWaveDesigner::on_lineEditPointTime_editingFinished()
         }
         return; //由于起始点时间总是为0，不需要保存，直接返回
     }
-    if (ui->lineEditPointTime->text().toDouble() < edit->x_at(i-1)+MIN_X_DIS)
+    if (ui->lineEditPointTime->text().toDouble() < edit->x_at(i-1)+minDeltaTime)
     {
         emit dropStep();
         MSG_WARNING("点时间过小");
         return;
     }
-    if (i < edit->count()-1 && ui->lineEditPointTime->text().toDouble() > edit->x_at(i+1)-MIN_X_DIS)
+    if (i < edit->count()-1 && ui->lineEditPointTime->text().toDouble() > edit->x_at(i+1)-minDeltaTime)
     {
         emit dropStep();
         MSG_WARNING("点时间过大");

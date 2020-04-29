@@ -31,9 +31,9 @@ public:
 
 private slots:
     /**
-     * @brief 对特定单片机所编写的特定设置选项
+     * @brief 对特定单片机所编写的初始设置选项
      */
-    void customizeSettings();
+    void defaultSettingsInit();
     /**
      * @brief 更新本窗口的正在调制图像
      */
@@ -81,6 +81,8 @@ private slots:
 
     bool sendCommandToDevice(QString command);
 
+    void recieveSettings(bool rTQ, int vQL, double mDT);
+
     void on_pushButtonEditWave_clicked();
 
     void on_actionAbout_triggered();
@@ -99,6 +101,8 @@ private slots:
      * @return
      */
     bool nativeEvent(const QByteArray &eventType, void *message, long *result);
+    void on_actionSetting_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -114,7 +118,11 @@ private:
 
     QSerialPort *m_serialPort;
 
-    bool connectError;
+    bool connectError, realTimeQuantify;
+
+    int volQuantiLevel;
+
+    double minDeltaTime;
 };
 
 /**

@@ -1,6 +1,7 @@
 #include "wavedata.h"
 
 WaveData::WaveData() :
+    realTimeQuantify(true),
     disX(-1),
     disY(-1),
     dataX(*(new QList<double>)),
@@ -10,15 +11,15 @@ WaveData::WaveData() :
     futureX(*(new QList<QList<double>>)),
     futureY(*(new QList<QList<double>>))
 {
-    this->clear();
+    clear();
     dataX.append(0);
     dataY.append(0);
-    this->save();
+    save();
 }
 
 WaveData::~WaveData()
 {
-    this->clear();
+    clear();
 }
 
 QList<double> WaveData::x()
@@ -33,12 +34,13 @@ QList<double> WaveData::y()
 
 void WaveData::add(double x, double y)
 {
-#if (REAL_TIME_QUALITIFY)
-    if (disX > 0)
-        x = round(x/disX)*disX;
-    if (disY > 0)
-        y = round(y/disY)*disY;
-#endif
+    if (realTimeQuantify)
+    {
+        if (disX > 0)
+            x = round(x/disX)*disX;
+        if (disY > 0)
+            y = round(y/disY)*disY;
+    }
     dataX.append(x);
     dataY.append(y);
 }
@@ -59,7 +61,7 @@ void WaveData::copyData(WaveData *data)
     dataY.clear();
     dataX.append(data->x());
     dataY.append(data->y());
-    this->save();
+    save();
 }
 
 int WaveData::count()
@@ -79,31 +81,34 @@ double WaveData::y_at(int i)
 
 void WaveData::set(int i, double x, double y)
 {
-#if (REAL_TIME_QUALITIFY)
-    if (disX > 0)
-        x = round(x/disX)*disX;
-    if (disY > 0)
-        y = round(y/disY)*disY;
-#endif
-    this->set_x(i, x);
-    this->set_y(i, y);
+    if (realTimeQuantify)
+    {
+        if (disX > 0)
+            x = round(x/disX)*disX;
+        if (disY > 0)
+            y = round(y/disY)*disY;
+    }
+    set_x(i, x);
+    set_y(i, y);
 }
 
 void WaveData::set_x(int i, double x)
 {
-#if (REAL_TIME_QUALITIFY)
-    if (disX > 0)
-        x = round(x/disX)*disX;
-#endif
+    if (realTimeQuantify)
+    {
+        if (disX > 0)
+            x = round(x/disX)*disX;
+    }
     dataX.replace(i, x);
 }
 
 void WaveData::set_y(int i, double y)
 {
-#if (REAL_TIME_QUALITIFY)
-    if (disY > 0)
-        y = round(y/disY)*disY;
-#endif
+    if (realTimeQuantify)
+    {
+        if (disY > 0)
+            y = round(y/disY)*disY;
+    }
     dataY.replace(i, y);
 }
 
@@ -115,12 +120,13 @@ void WaveData::del(int i)
 
 void WaveData::insert(int i, double x, double y)
 {
-#if (REAL_TIME_QUALITIFY)
-    if (disX > 0)
-        x = round(x/disX)*disX;
-    if (disY > 0)
-        y = round(y/disY)*disY;
-#endif
+    if (realTimeQuantify)
+    {
+        if (disX > 0)
+            x = round(x/disX)*disX;
+        if (disY > 0)
+            y = round(y/disY)*disY;
+    }
     dataX.insert(i, x);
     dataY.insert(i, y);
 }
@@ -171,6 +177,13 @@ void WaveData::drop()
     dataY = historyY.last();
 }
 
+void WaveData::setRealTimeQuantify(bool enabled)
+{
+    realTimeQuantify = enabled;
+    if (realTimeQuantify)
+        quantify();
+}
+
 void WaveData::setDisX(double x)
 {
     if(x > 0)
@@ -183,17 +196,20 @@ void WaveData::setDisY(double y)
         disY = y;
 }
 
-void WaveData::qualitify(double x, double y)
+void WaveData::quantify(double x, double y)
 {
     int i;
-    this->setDisX(x);
-    this->setDisY(y);
+    setDisX(x);
+    setDisY(y);
+
+    if (!realTimeQuantify)
+        return;
 
     if (disX > 0 && dataX.count() > 1)
         for (i = 1; i < dataX.count(); i++)
-            this->set_x(i, round(dataX.at(i)/disX)*disX);
+            set_x(i, round(dataX.at(i)/disX)*disX);
 
     if (disY > 0 && dataY.count() > 1)
         for (i = 1; i < dataY.count(); i++)
-            this->set_y(i, round(dataY.at(i)/disY)*disY);
+            set_y(i, round(dataY.at(i)/disY)*disY);
 }

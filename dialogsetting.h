@@ -17,6 +17,15 @@ public:
 
 private:
     Ui::DialogSetting *ui;
+
+    bool realTimeQuantify;
+
+    int volQuantiLevel;
+
+    double minDeltaTime;
+
+signals:
+    void sendSettings(bool rTQ, int vQL, double mDT);
 };
 
 #endif // DIALOGSETTING_H

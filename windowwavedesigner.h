@@ -14,8 +14,8 @@
 
 #define POINT_CIRCLE_SIZE 13
 #define DEFAULT_X_DIS ((ui->widgetWave->graph()->dataCount()-1)?(ui->widgetWave->graph()->data()->at(ui->widgetWave->graph()->dataCount()-1)->key/(ui->widgetWave->graph()->dataCount()-1)):5)
-#define MIN_X_DIS 1
-#define MIN_Y_DIS 1.0/4096.0
+//#define minDisX 1
+//#define MIN_Y_DIS 1.0/4096.0
 
 #include <QMainWindow>
 
@@ -39,6 +39,10 @@ public slots:
 public:
     explicit WindowWaveDesigner(QWidget *parent = nullptr);
     ~WindowWaveDesigner();
+
+    bool realTimeQuantify;
+
+    double minDeltaTime, minDeltaVoltage;
 
 private slots:
     /**

@@ -11,6 +11,10 @@
 #define RECV_MAX_LENGTH 1
 #define RECV_MIN_LENGTH 1
 #define RECV_OK "!"
-//#define RECV_ERROR "!"
+//#define RECV_ERROR "~"
+
+#define DEFAULT_VOL_QUANTIFY_LEVEL 4096
+#define DEFAULT_MIN_DELTA_TIME 1
+#define DEFAULT_REALTIME_QUANTIFY true
 
 #endif // SIGNAL_H
