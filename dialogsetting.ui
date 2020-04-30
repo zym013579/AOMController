@@ -20,9 +20,6 @@
       <string>GroupBox</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="2" column="1">
-       <widget class="QLineEdit" name="lineEditVolQuantiLevel"/>
-      </item>
       <item row="2" column="0">
        <widget class="QLabel" name="labelVolQuantiLevel">
         <property name="text">
@@ -30,18 +27,15 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="0" colspan="2">
-       <spacer name="verticalSpacer">
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
+      <item row="3" column="0">
+       <widget class="QLabel" name="labelMinDeltaTime">
+        <property name="text">
+         <string>最小单位时间间隔(us)：</string>
         </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>40</height>
-         </size>
-        </property>
-       </spacer>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QLineEdit" name="lineEditVolQuantiLevel"/>
       </item>
       <item row="0" column="0" colspan="2">
        <widget class="QLabel" name="labelWarning">
@@ -67,15 +61,29 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
-       <widget class="QLabel" name="labelMinDeltaTime">
-        <property name="text">
-         <string>最小单位时间间隔(us)：</string>
+      <item row="4" column="0" colspan="2">
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
         </property>
-       </widget>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
       </item>
       <item row="3" column="1">
        <widget class="QLineEdit" name="lineEditMinDeltaTime"/>
+      </item>
+      <item row="5" column="0" colspan="2">
+       <widget class="QLabel" name="labelInfo">
+        <property name="text">
+         <string>若勾选实时量化选项，再次打开波形
+编辑器会自动进行量化操作！</string>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -86,7 +94,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </item>

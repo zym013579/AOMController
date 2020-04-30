@@ -133,20 +133,28 @@ public:
 
     void setRealTimeQuantify(bool enabled);
 
-    void setDisX(double x);
+    bool getRealTimeQuantify();
 
-    void setDisY(double y);
+    int getVolQuantiLevel();
 
-    void quantify(double x = -1, double y = -1);
+    double getMinDeltaTime();
+
+    void quantify(double dx = -1, int level = -1);
 
 protected:
     bool realTimeQuantify;
 
-    double disX, disY;
+    int volQuantiLevel;
+
+    double minDeltaTime;
 
     QList<double> dataX, dataY;
 
     QList<QList<double>> historyX, historyY, futureX, futureY;
+
+    QList<int> historyVQL, futureVQL;
+
+    QList<double> historyMDT, futureMDT;
 };
 
 #endif // WAVEDATA_H

@@ -3,13 +3,13 @@
 
 WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     QMainWindow(parent),
-    realTimeQuantify(DEFAULT_REALTIME_QUANTIFY),
-    minDeltaTime(DEFAULT_MIN_DELTA_TIME),
-    minDeltaVoltage(1.0/DEFAULT_VOL_QUANTIFY_LEVEL),
     ui(new Ui::WindowWaveDesigner),
     edit(new WaveData),
     mouseHasMoved(false),
     c_point(-1)    //选中已选择的点时改变值
+    //data->getRealTimeQuantify()(DEFAULT_REALTIME_QUANTIFY),
+    //volQuantiLevel(DEFAULT_VOL_QUANTIFY_LEVEL),
+    //minDeltaTime(DEFAULT_MIN_DELTA_TIME)
 
 {
     ui->setupUi(this);
@@ -17,13 +17,14 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     //设置可输入字符
     QRegExp regExpUDouble("(\\d*)(\\.\\d+)?");
     QRegExp regExpUInt("(\\d*)");
-    ui->lineEditFrequency->setValidator(new QRegExpValidator(regExpUDouble, ui->lineEditFrequency));
+    ui->lineEditMinDeltaTime->setValidator(new QRegExpValidator(regExpUDouble, ui->lineEditMinDeltaTime));
     ui->lineEditPointTime->setValidator(new QRegExpValidator(regExpUDouble, ui->lineEditPointTime));
-    ui->lineEditMaxVoltage->setValidator(new QRegExpValidator(regExpUDouble, ui->lineEditMaxVoltage));
+    ui->lineEditVolQuantiLevel->setValidator(new QRegExpValidator(regExpUInt, ui->lineEditVolQuantiLevel));
     ui->lineEditPointNumber->setValidator(new QRegExpValidator(regExpUInt, ui->lineEditPointNumber));
     ui->lineEditPointVoltage->setValidator(new QRegExpValidator(regExpUDouble, ui->lineEditPointVoltage));
 
     emit initWaveGraph(ui->widgetWave);
+    ui->lineEditMaxVol->setText("5");
     //edit->setDisX(MIN_X_DIS);
     //edit->setDisY(MIN_Y_DIS);
 
@@ -35,6 +36,7 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
 
     connect(ui->actionUndo, SIGNAL(triggered()), this, SLOT(undoStep()));
     connect(ui->actionRedo, SIGNAL(triggered()), this, SLOT(redoStep()));
+    connect(parent, SIGNAL(sendSettings(WaveData*)), this, SLOT(recieveSettings(WaveData*)));
 }
 
 WindowWaveDesigner::~WindowWaveDesigner()
@@ -46,6 +48,27 @@ WindowWaveDesigner::~WindowWaveDesigner()
 double checkData(double input, double min, double max)
 {
     return MAX(min, MIN(max, input));
+}
+
+void WindowWaveDesigner::recieveSettings(WaveData *data)
+{
+    //data->getRealTimeQuantify() = data->getdata->getRealTimeQuantify()();
+    //minDeltaTime = data->getdata->getRealTimeQuantify()();
+    //volQuantiLevel = data->getVolQuantiLevel();
+    //qDebug() << numberToStr(mDT);
+    //qDebug() << numberToStr(vQL+1);
+    edit->clear();
+    edit->copyData(data);
+    edit->quantify();
+    ui->checkBoxRealTimeQuanti->setChecked(edit->getRealTimeQuantify());
+    ui->lineEditMinDeltaTime->setText(numberToStr(edit->getMinDeltaTime()));
+    ui->lineEditVolQuantiLevel->setText(numberToStr(edit->getVolQuantiLevel()+1));
+    emit freshUndoRedoButton();
+    if (edit->count() > 1)
+        ui->widgetWave->xAxis->setRange(-0.05*edit->x_at(edit->count()-1), 1.05*edit->x_at(edit->count()-1));
+    else
+        ui->widgetWave->xAxis->setRange(-0.25, 20.2);  //tmp
+    emit choosePoint(-1);
 }
 
 void WindowWaveDesigner::updateGraph()
@@ -64,9 +87,9 @@ void WindowWaveDesigner::updateLineEditText()
     }
     else
     {
-        ui->lineEditPointNumber->setText(QString::number(i));
-        ui->lineEditPointTime->setText(QString::number(edit->x_at(i)));
-        ui->lineEditPointVoltage->setText(QString::number(100*edit->y_at(i)));
+        ui->lineEditPointNumber->setText(numberToStr(i));
+        ui->lineEditPointTime->setText(numberToStr(edit->x_at(i)));
+        ui->lineEditPointVoltage->setText(numberToStr(ui->lineEditMaxVol->text().toDouble()*edit->y_at(i)));
     }
 }
 
@@ -147,19 +170,19 @@ void WindowWaveDesigner::choosePoint(int i, int j)
     emit updateLineEditText();
 }
 
-void WindowWaveDesigner::recieveWaveData(WaveData *data)
-{
-    edit->clear();
-    edit->setRealTimeQuantify(realTimeQuantify);
-    edit->quantify(minDeltaTime, minDeltaVoltage);
-    edit->copyData(data);
-    emit freshUndoRedoButton();
-    if (edit->count() > 1)
-        ui->widgetWave->xAxis->setRange(-0.05*edit->x_at(edit->count()-1), 1.05*edit->x_at(edit->count()-1));
-    else
-        ui->widgetWave->xAxis->setRange(-0.25, 20.2);  //tmp
-    emit choosePoint(-1);
-}
+//void WindowWaveDesigner::recieveWaveData(WaveData *data)
+//{
+//    edit->clear();
+//    edit->setdata->getRealTimeQuantify()(data->getRealTimeQuantify());
+//    edit->copyData(data);
+//    edit->quantify(minDeltaTime, volQuantiLevel);
+//    emit freshUndoRedoButton();
+//    if (edit->count() > 1)
+//        ui->widgetWave->xAxis->setRange(-0.05*edit->x_at(edit->count()-1), 1.05*edit->x_at(edit->count()-1));
+//    else
+//        ui->widgetWave->xAxis->setRange(-0.25, 20.2);  //tmp
+//    emit choosePoint(-1);
+//}
 
 void WindowWaveDesigner::on_widgetWave_mousePress(QMouseEvent *event)
 {
@@ -192,9 +215,9 @@ void WindowWaveDesigner::on_widgetWave_mouseMove(QMouseEvent *event)
     if (c_point == 0)
         x_val = 0;
     else if (c_point != edit->count()-1)
-        x_val = checkData(X_VAL, edit->x_at(c_point-1)+minDeltaTime, edit->x_at(c_point+1)-minDeltaTime);
+        x_val = checkData(X_VAL, edit->x_at(c_point-1)+edit->getMinDeltaTime(), edit->x_at(c_point+1)-edit->getMinDeltaTime());
     else
-        x_val = MAX(edit->x_at(c_point-1)+minDeltaTime, X_VAL);
+        x_val = MAX(edit->x_at(c_point-1)+edit->getMinDeltaTime(), X_VAL);
     edit->set(c_point, x_val, checkData(Y_VAL, 0, 1));
     emit updateGraph();
     emit updateLineEditText();
@@ -227,7 +250,7 @@ void WindowWaveDesigner::on_pushButtonInsert_clicked()
     int i = witchPointclicked();
     if (i == -1 || i == edit->count()-1)
         emit on_pushButtonNew_clicked();
-    else if (edit->x_at(i+1)-edit->x_at(i) > 10*minDeltaTime)
+    else if (edit->x_at(i+1)-edit->x_at(i) > 10*edit->getMinDeltaTime())
         edit->insert(i+1, (edit->x_at(i+1)+edit->x_at(i))/2.0, edit->y_at(i));
     else
         MSG_WARNING("两点间距过小，不能插入");
@@ -282,7 +305,7 @@ void WindowWaveDesigner::on_lineEditPointTime_textEdited(const QString &arg1)
     if (i == edit->count()-1)
         edit->set_x(i, MAX(edit->x_at(i-1), arg1.toDouble()));
     else
-        edit->set_x(i, checkData(arg1.toDouble(), edit->x_at(i-1)+minDeltaTime, edit->x_at(i+1)-minDeltaTime));
+        edit->set_x(i, checkData(arg1.toDouble(), edit->x_at(i-1)+edit->getMinDeltaTime(), edit->x_at(i+1)-edit->getMinDeltaTime()));
     emit updateGraph();
 }
 
@@ -291,7 +314,7 @@ void WindowWaveDesigner::on_lineEditPointVoltage_textEdited(const QString &arg1)
     int i = witchPointclicked();
     if (i == -1 || arg1 == "")
         return;
-    edit->set_y(i, checkData(arg1.toDouble()/100, 0, 1));
+    edit->set_y(i, checkData(arg1.toDouble()/ui->lineEditMaxVol->text().toDouble(), 0, 1));
     emit updateGraph();
 }
 
@@ -324,13 +347,13 @@ void WindowWaveDesigner::on_lineEditPointTime_editingFinished()
         }
         return; //由于起始点时间总是为0，不需要保存，直接返回
     }
-    if (ui->lineEditPointTime->text().toDouble() < edit->x_at(i-1)+minDeltaTime)
+    if (ui->lineEditPointTime->text().toDouble() < edit->x_at(i-1)+edit->getMinDeltaTime())
     {
         emit dropStep();
         MSG_WARNING("点时间过小");
         return;
     }
-    if (i < edit->count()-1 && ui->lineEditPointTime->text().toDouble() > edit->x_at(i+1)-minDeltaTime)
+    if (i < edit->count()-1 && ui->lineEditPointTime->text().toDouble() > edit->x_at(i+1)-edit->getMinDeltaTime())
     {
         emit dropStep();
         MSG_WARNING("点时间过大");
@@ -348,7 +371,7 @@ void WindowWaveDesigner::on_lineEditPointVoltage_editingFinished()
         MSG_WARNING("没有选点");
         return;
     }
-    if (ui->lineEditPointVoltage->text().toDouble() > 100)
+    if (ui->lineEditPointVoltage->text().toDouble() > ui->lineEditMaxVol->text().toDouble())
     {
         emit dropStep();
         MSG_WARNING("点电压超出范围");
@@ -356,4 +379,23 @@ void WindowWaveDesigner::on_lineEditPointVoltage_editingFinished()
     }
     emit updateLineEditText();
     emit saveStep();
+}
+
+void WindowWaveDesigner::on_pushButtonApply_clicked()
+{
+    QMessageBox::StandardButton result = QMessageBox::warning(this, "警告", "请确保您十分了解这些参数的意义，否则请不要更改！\n是否应用设置？", QMessageBox::Yes|QMessageBox::Cancel, QMessageBox::Cancel);
+    if (result == QMessageBox::Cancel)
+    {
+        ui->checkBoxRealTimeQuanti->setChecked(edit->getRealTimeQuantify());
+        ui->lineEditVolQuantiLevel->setText(numberToStr(edit->getVolQuantiLevel()));
+        ui->lineEditMinDeltaTime->setText(numberToStr(edit->getMinDeltaTime()));
+        return;
+    }
+    edit->setRealTimeQuantify(ui->checkBoxRealTimeQuanti->isChecked());
+    //edit->sevolQuantiLevel = ui->lineEditVolQuantiLevel->text().toInt();
+    //minDeltaTime = ui->lineEditMinDeltaTime->text().toDouble();
+    edit->quantify(edit->getMinDeltaTime(), edit->getVolQuantiLevel());
+    edit->save();
+    emit choosePoint(-1);
+    emit updateGraph();
 }

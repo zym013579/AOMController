@@ -4,17 +4,11 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    wDesigner(new WindowWaveDesigner),
-    wAbout(new DialogAbout),
-    wSetting(new DialogSetting),
     modu(new WaveData),
     edit(new WaveData),
     m_serialPortName({}),
     m_serialPort(new QSerialPort),
-    connectError(false),
-    realTimeQuantify(DEFAULT_REALTIME_QUANTIFY),
-    volQuantiLevel(DEFAULT_VOL_QUANTIFY_LEVEL),
-    minDeltaTime(DEFAULT_MIN_DELTA_TIME)
+    connectError(false)
 {
     ui->setupUi(this);
 
@@ -22,11 +16,15 @@ MainWindow::MainWindow(QWidget *parent) :
     emit initWaveGraph(ui->widgetModulatingWave);
     emit initWaveGraph(ui->widgetEditingWave);
 
+    SET_REALTIME_QUANTIFY(DEFAULT_REALTIME_QUANTIFY);
+    SET_VOL_QUANTIFY_LEVEL(DEFAULT_VOL_QUANTIFY_LEVEL);
+    SET_MIN_DELTA_TIME(DEFAULT_MIN_DELTA_TIME);
+
     emit closePort();
     emit searchDevice();
 
-    connect(wDesigner, SIGNAL(sendWaveData(WaveData*)), this, SLOT(recieveWaveDataFromEditor(WaveData*)));
-    connect(wSetting, SIGNAL(sendSettings()), this, SLOT(recieveSettings()));
+    //connect(wDesigner, SIGNAL(sendWaveData(WaveData*)), this, SLOT(recieveWaveDataFromEditor(WaveData*)));
+    //connect(wSetting, SIGNAL(sendSettings(bool, int, double)), this, SLOT(recieveSettings(bool, int, double)));
     //connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(recieveDeviceInfo()));
 }
 
@@ -36,19 +34,19 @@ MainWindow::~MainWindow()
     delete m_serialPort;
     delete modu;
     delete edit;
-    delete wSetting;
-    delete wAbout;
-    delete wDesigner;
+    //delete wSetting;
+    //delete wAbout;
+    //delete wDesigner;
     delete ui;
 }
 
 void MainWindow::defaultSettingsInit()
 {
-    wDesigner->realTimeQuantify = realTimeQuantify;    //传递信息
-    wDesigner->minDeltaTime = minDeltaTime;
-    wDesigner->minDeltaVoltage = 1.0/volQuantiLevel;
-    ui->lineEditVoltageStatus->setText(QString::number(volQuantiLevel));
-    ui->lineEditFrequencyStatus->setText(QString::number(minDeltaTime));
+    //wDesigner->realTimeQuantify = realTimeQuantify;    //传递信息
+    //wDesigner->minDeltaTime = minDeltaTime;
+    //wDesigner->minDeltaVoltage = 1.0/volQuantiLevel;
+    //ui->lineEditVoltageStatus->setText(QString::number(volQuantiLevel));
+    //ui->lineEditFrequencyStatus->setText(QString::number(minDeltaTime));
 }
 
 void MainWindow::updateModuGraph()
@@ -66,6 +64,9 @@ void MainWindow::updateEditGraph()
 void MainWindow::recieveWaveDataFromEditor(WaveData *data)
 {
     edit->copyData(data);
+    SET_REALTIME_QUANTIFY(data->getRealTimeQuantify());
+    SET_VOL_QUANTIFY_LEVEL(data->getVolQuantiLevel());
+    SET_MIN_DELTA_TIME(data->getMinDeltaTime());
     emit updateEditGraph();
 }
 
@@ -135,13 +136,14 @@ void MainWindow::searchDevice()
 
 bool MainWindow::recieveDeviceInfo(int timeout)
 {
-    QByteArray recv = m_serialPort->readAll();
+    //QByteArray recv = m_serialPort->readAll();
     if (!m_serialPort->waitForReadyRead(timeout))
     {
         closePort();
         MSG_WARNING("接收信息超时，关闭端口");
         return false;
     }
+    QByteArray recv = m_serialPort->readAll();
     if (recv.count() > RECV_MAX_LENGTH || recv.count() < RECV_MIN_LENGTH || recv != RECV_OK)
         return false;
     return true;
@@ -213,26 +215,26 @@ bool MainWindow::sendCommandToDevice(QString command)
     }
 }
 
-void MainWindow::recieveSettings(bool rTQ, int vQL, double mDT)
-{
-    realTimeQuantify = rTQ;
-    volQuantiLevel = vQL;
-    minDeltaTime = mDT;
-    ui->lineEditVoltageStatus->setText(QString::number(volQuantiLevel));
-    ui->lineEditFrequencyStatus->setText(QString::number(minDeltaTime));
-}
+//void MainWindow::recieveSettings(bool rTQ, int vQL, double mDT)
+//{
+//    SET_REALTIME_QUANTIFY(rTQ);
+//    SET_VOL_QUANTIFY_LEVEL(vQL);
+//    SET_MIN_DELTA_TIME(mDT);
+//}
 
 void MainWindow::on_pushButtonEditWave_clicked()
 {
-    wDesigner->realTimeQuantify = realTimeQuantify;    //传递信息
-    wDesigner->minDeltaTime = minDeltaTime;
-    wDesigner->minDeltaVoltage = 1.0/volQuantiLevel;
-    wDesigner->recieveWaveData(edit);
+    WindowWaveDesigner *wDesigner = new WindowWaveDesigner(this);
+    emit sendSettings(edit);
+    //wDesigner->recieveWaveData(edit);
+    connect(wDesigner, SIGNAL(sendWaveData(WaveData*)), this, SLOT(recieveWaveDataFromEditor(WaveData*)));
+    //connect(wDesigner, SIGNAL(sendSettings(bool, int, double)), this, SLOT(recieveSettings(bool, int, double)));
     wDesigner->show();
 }
 
 void MainWindow::on_actionAbout_triggered()
 {
+    DialogAbout *wAbout = new DialogAbout;
     wAbout->exec();
 }
 
@@ -252,12 +254,65 @@ void MainWindow::on_pushButtonStart_clicked()
 
 void MainWindow::on_pushButtonSend_clicked()
 {
-    QByteArray sendInfo; //要发送的数据
+    if (edit->count() < 2)
+    {
+        MSG_WARNING("点数量过少");
+        return;
+    }
 
-    //数据处理部分未完成
-    sendInfo = "\x00";
+    edit->quantify(MIN_DELTA_TIME, VOL_QUANTIFY_LEVEL); //量化数据
+    edit->save();
+    QByteArray sendInfo = ""; //要发送的数据
 
-    if (!sendToDevice(&sendInfo, 1))
+    sendInfo.append('{');
+    for (int i = 0; i < edit->count()-1; i++)
+    {
+        int y = trunc(edit->y_at(i)*VOL_QUANTIFY_LEVEL);
+//        if (y == VOL_QUANTIFY_LEVEL)    //防止下位机溢出，在级数较少时可能存在误差
+//            y--;
+
+//        if (y > 16383)
+//        {
+//            closePort();
+//            MSG_WARNING("波形转换发生致命错误");
+//            return;
+//        }
+        y = ((y/128)*256 + (y%128)) | 0x8080;
+        //sendInfo.append(y);
+//        t1.remove(1);
+//        t1 = QString::number(((t1.toInt(Q_NULLPTR, 16)<<2)+t2.toInt()/8) | 8, 16);
+//        t2 = QString::number(t2.toInt(Q_NULLPTR, 16) | 8);
+//        sendInfo.append(t1);
+//        sendInfo.append(t2);
+
+        int dx = trunc((edit->x_at(i+1)-edit->x_at(i))/MIN_DELTA_TIME);
+
+        while (dx > 16383)  //2^14-1
+        {
+            sendInfo.append(y/0x100);
+            sendInfo.append(y%0x100);
+            int times = dx/16384;
+            if (times > 127)
+                times = 127;
+            sendInfo.append('M');
+            sendInfo.append(times|0x80);
+            dx = dx - 16384*times;
+            sendInfo.append(';');
+        }
+
+        if (dx > 0)
+        {
+            sendInfo.append(y/0x100);
+            sendInfo.append(y%0x100);
+            dx = ((dx/128)*256 + (dx%128)) | 0x8080;
+            sendInfo.append(dx/0x100);
+            sendInfo.append(dx%0x100);
+            sendInfo.append(';');
+        }
+    }
+    sendInfo.append('}');
+
+    if (!sendToDevice(&sendInfo))
     {
         LINEEDIT_INFO("发送超时");
         MSG_WARNING("发送超时");
@@ -290,10 +345,13 @@ void MainWindow::on_pushButtonConnect_clicked()
     }
 }
 
-void MainWindow::on_actionSetting_triggered()
-{
-    wSetting->exec();
-}
+//void MainWindow::on_actionSetting_triggered()
+//{
+//    DialogSetting *wSetting = new DialogSetting(this);
+//    emit sendSettings(REALTIME_QUANTIFY, VOL_QUANTIFY_LEVEL, MIN_DELTA_TIME);
+//    connect(wSetting, SIGNAL(sendSettings(bool, int, double)), this, SLOT(recieveSettings(bool, int, double)));
+//    wSetting->exec();
+//}
 
 bool MainWindow::nativeEvent(const QByteArray &eventType, void *message, long *result)
 {
@@ -333,3 +391,17 @@ void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y)
     target->replot();
 }
 
+QString numberToStr(int num)
+{
+    return QString::number(num);
+}
+
+QString numberToStr(double num)
+{
+    QString t = QString::number(num, 'f');
+    while (t.indexOf('.') != -1 && t.at(t.count()-1) == '0')
+        t.remove(t.count()-1, 1);
+    if (t.indexOf('.') == t.count()-1)
+        t.remove(t.count()-1, 1);
+    return t;
+}

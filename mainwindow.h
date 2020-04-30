@@ -8,9 +8,17 @@
 
 #define LINEEDIT_INFO(message) (ui->lineEditConnectStatus->setText(message))
 
+#define REALTIME_QUANTIFY (ui->checkBoxRealTimeQuanti->isChecked())
+#define VOL_QUANTIFY_LEVEL (ui->lineEditVoltageStatus->text().toInt()-1)
+#define MIN_DELTA_TIME (ui->lineEditFrequencyStatus->text().toDouble())
+
+#define SET_REALTIME_QUANTIFY(enabled) (ui->checkBoxRealTimeQuanti->setChecked(enabled))
+#define SET_VOL_QUANTIFY_LEVEL(level) (ui->lineEditVoltageStatus->setText(QString::number(level+1)))
+#define SET_MIN_DELTA_TIME(time) (ui->lineEditFrequencyStatus->setText(QString::number(time)))
+
 #include "windowwavedesigner.h"
 #include "dialogabout.h"
-#include "dialogsetting.h"
+//#include "dialogsetting.h"
 #include "dbt.h"
 
 #include "qcustomplot.h"
@@ -81,7 +89,7 @@ private slots:
 
     bool sendCommandToDevice(QString command);
 
-    void recieveSettings(bool rTQ, int vQL, double mDT);
+    //void recieveSettings(bool rTQ, int vQL, double mDT);
 
     void on_pushButtonEditWave_clicked();
 
@@ -101,16 +109,16 @@ private slots:
      * @return
      */
     bool nativeEvent(const QByteArray &eventType, void *message, long *result);
-    void on_actionSetting_triggered();
+    //void on_actionSetting_triggered();
 
 private:
     Ui::MainWindow *ui;
 
-    WindowWaveDesigner *wDesigner;
+    //WindowWaveDesigner *wDesigner;
 
-    DialogAbout *wAbout;
+    //DialogAbout *wAbout;
 
-    DialogSetting *wSetting;
+    //DialogSetting *wSetting;
 
     WaveData *modu, *edit;
 
@@ -118,11 +126,10 @@ private:
 
     QSerialPort *m_serialPort;
 
-    bool connectError, realTimeQuantify;
+    bool connectError;
 
-    int volQuantiLevel;
-
-    double minDeltaTime;
+signals:
+    void sendSettings(WaveData *data);
 };
 
 /**
@@ -138,5 +145,9 @@ void initWaveGraph(QCustomPlot *target);
  * @param y y轴数据
  */
 void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y);
+
+QString numberToStr(int num);
+
+QString numberToStr(double num);
 
 #endif // MAINWINDOW_H

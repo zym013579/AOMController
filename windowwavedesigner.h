@@ -33,18 +33,15 @@ class WindowWaveDesigner : public QMainWindow
 {
     Q_OBJECT
 
-public slots:
-    void recieveWaveData(WaveData *data);
+//public slots:
+//    void recieveWaveData(WaveData *data);
 
 public:
     explicit WindowWaveDesigner(QWidget *parent = nullptr);
     ~WindowWaveDesigner();
 
-    bool realTimeQuantify;
-
-    double minDeltaTime, minDeltaVoltage;
-
 private slots:
+    void recieveSettings(WaveData *data);
     /**
      * @brief 更新本窗口的图像
      */
@@ -144,6 +141,8 @@ private slots:
 
     void on_pushButtonInsert_clicked();
 
+    void on_pushButtonApply_clicked();
+
 private:
     Ui::WindowWaveDesigner *ui;
 
@@ -155,6 +154,12 @@ private:
      * @param c_point 点击已选中的点时改变值
      */
     int c_point;
+
+    //bool realTimeQuantify;
+
+    //int volQuantiLevel;
+
+    //double minDeltaTime;
 
 signals:
     void sendWaveData(WaveData *data);
@@ -172,5 +177,9 @@ void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y);
  * @return 若输入值在区间内则返回输入值，否则返回临界值
  */
 double checkData(double input, double min, double max);
+
+QString numberToStr(int num);
+
+QString numberToStr(double num);
 
 #endif // WINDOWWAVEDESIGNER_H

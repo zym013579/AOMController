@@ -1,15 +1,19 @@
 #include "wavedata.h"
 
 WaveData::WaveData() :
-    realTimeQuantify(true),
-    disX(-1),
-    disY(-1),
+    realTimeQuantify(DEFAULT_REALTIME_QUANTIFY),
+    volQuantiLevel(DEFAULT_VOL_QUANTIFY_LEVEL),
+    minDeltaTime(DEFAULT_MIN_DELTA_TIME),
     dataX(*(new QList<double>)),
     dataY(*(new QList<double>)),
     historyX(*(new QList<QList<double>>)),
     historyY(*(new QList<QList<double>>)),
     futureX(*(new QList<QList<double>>)),
-    futureY(*(new QList<QList<double>>))
+    futureY(*(new QList<QList<double>>)),
+    historyVQL(*(new QList<int>)),
+    futureVQL(*(new QList<int>)),
+    historyMDT(*(new QList<double>)),
+    futureMDT(*(new QList<double>))
 {
     clear();
     dataX.append(0);
@@ -36,10 +40,10 @@ void WaveData::add(double x, double y)
 {
     if (realTimeQuantify)
     {
-        if (disX > 0)
-            x = round(x/disX)*disX;
-        if (disY > 0)
-            y = round(y/disY)*disY;
+        if (minDeltaTime > 0)
+            x = round(x/minDeltaTime)*minDeltaTime;
+        if (volQuantiLevel > 0)
+            y = round(y*volQuantiLevel)/volQuantiLevel;
     }
     dataX.append(x);
     dataY.append(y);
@@ -53,6 +57,10 @@ void WaveData::clear()
     historyY.clear();
     futureX.clear();
     futureY.clear();
+    historyMDT.clear();
+    historyVQL.clear();
+    futureMDT.clear();
+    futureVQL.clear();
 }
 
 void WaveData::copyData(WaveData *data)
@@ -61,6 +69,9 @@ void WaveData::copyData(WaveData *data)
     dataY.clear();
     dataX.append(data->x());
     dataY.append(data->y());
+    realTimeQuantify = data->getRealTimeQuantify();
+    volQuantiLevel = data->getVolQuantiLevel();
+    minDeltaTime = data->getMinDeltaTime();
     save();
 }
 
@@ -83,10 +94,10 @@ void WaveData::set(int i, double x, double y)
 {
     if (realTimeQuantify)
     {
-        if (disX > 0)
-            x = round(x/disX)*disX;
-        if (disY > 0)
-            y = round(y/disY)*disY;
+        if (minDeltaTime > 0)
+            x = round(x/minDeltaTime)*minDeltaTime;
+        if (volQuantiLevel > 0)
+            y = round(y*volQuantiLevel)/volQuantiLevel;
     }
     set_x(i, x);
     set_y(i, y);
@@ -96,8 +107,8 @@ void WaveData::set_x(int i, double x)
 {
     if (realTimeQuantify)
     {
-        if (disX > 0)
-            x = round(x/disX)*disX;
+        if (minDeltaTime > 0)
+            x = round(x/minDeltaTime)*minDeltaTime;
     }
     dataX.replace(i, x);
 }
@@ -106,8 +117,8 @@ void WaveData::set_y(int i, double y)
 {
     if (realTimeQuantify)
     {
-        if (disY > 0)
-            y = round(y/disY)*disY;
+        if (volQuantiLevel > 0)
+            y = round(y*volQuantiLevel)/volQuantiLevel;
     }
     dataY.replace(i, y);
 }
@@ -122,10 +133,10 @@ void WaveData::insert(int i, double x, double y)
 {
     if (realTimeQuantify)
     {
-        if (disX > 0)
-            x = round(x/disX)*disX;
-        if (disY > 0)
-            y = round(y/disY)*disY;
+        if (minDeltaTime > 0)
+            x = round(x/minDeltaTime)*minDeltaTime;
+        if (volQuantiLevel > 0)
+            y = round(y*volQuantiLevel)/volQuantiLevel;
     }
     dataX.insert(i, x);
     dataY.insert(i, y);
@@ -133,22 +144,32 @@ void WaveData::insert(int i, double x, double y)
 
 void WaveData::save()
 {
-    if (historyX.count() > 0 && dataX == historyX.last() && dataY == historyY.last())
+    if (historyX.count() > 0 && dataX == historyX.last() && dataY == historyY.last() && minDeltaTime == historyMDT.last() && volQuantiLevel == historyVQL.last())
         return;
     historyX.append(dataX);
     historyY.append(dataY);
+    historyMDT.append(minDeltaTime);
+    historyVQL.append(volQuantiLevel);
     futureX.clear();
     futureY.clear();
+    futureMDT.clear();
+    futureVQL.clear();
 }
 
 void WaveData::unDo()
 {
     futureX.append(dataX);
     futureY.append(dataY);
+    futureMDT.append(minDeltaTime);
+    futureVQL.append(volQuantiLevel);
     historyX.removeLast();
     historyY.removeLast();
+    historyMDT.removeLast();
+    historyVQL.removeLast();
     dataX = historyX.last();
     dataY = historyY.last();
+    minDeltaTime = historyMDT.last();
+    volQuantiLevel = historyVQL.last();
 }
 
 int WaveData::count_unDo()
@@ -160,10 +181,16 @@ void WaveData::reDo()
 {
     dataX = futureX.last();
     dataY = futureY.last();
+    minDeltaTime = futureMDT.last();
+    volQuantiLevel = futureVQL.last();
     historyX.append(dataX);
     historyY.append(dataY);
+    historyMDT.append(minDeltaTime);
+    historyVQL.append(volQuantiLevel);
     futureX.removeLast();
     futureY.removeLast();
+    futureMDT.removeLast();
+    futureVQL.removeLast();
 }
 
 int WaveData::count_reDo()
@@ -184,32 +211,37 @@ void WaveData::setRealTimeQuantify(bool enabled)
         quantify();
 }
 
-void WaveData::setDisX(double x)
+bool WaveData::getRealTimeQuantify()
 {
-    if(x > 0)
-        disX = x;
+    return realTimeQuantify;
 }
 
-void WaveData::setDisY(double y)
+int WaveData::getVolQuantiLevel()
 {
-    if(y > 0)
-        disY = y;
+    return volQuantiLevel;
 }
 
-void WaveData::quantify(double x, double y)
+double WaveData::getMinDeltaTime()
+{
+    return minDeltaTime;
+}
+
+void WaveData::quantify(double dx, int level)
 {
     int i;
-    setDisX(x);
-    setDisY(y);
+    if(dx > 0)
+        minDeltaTime = dx;
+    if(level > 0)
+        volQuantiLevel = level;
 
     if (!realTimeQuantify)
         return;
 
-    if (disX > 0 && dataX.count() > 1)
+    if (minDeltaTime > 0 && dataX.count() > 1)
         for (i = 1; i < dataX.count(); i++)
-            set_x(i, round(dataX.at(i)/disX)*disX);
+            set_x(i, round(dataX.at(i)/minDeltaTime)*minDeltaTime);
 
-    if (disY > 0 && dataY.count() > 1)
+    if ((1.0/volQuantiLevel) > 0 && dataY.count() > 1)
         for (i = 1; i < dataY.count(); i++)
-            set_y(i, round(dataY.at(i)/disY)*disY);
+            set_y(i, round(dataY.at(i)*volQuantiLevel)/volQuantiLevel);
 }

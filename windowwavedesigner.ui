@@ -14,7 +14,7 @@
    <enum>Qt::ClickFocus</enum>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>波形编辑器</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="focusPolicy">
@@ -30,25 +30,8 @@
        <string>当前器件参数</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_5">
-       <item row="0" column="0">
-        <widget class="QLabel" name="labelFrequency">
-         <property name="focusPolicy">
-          <enum>Qt::ClickFocus</enum>
-         </property>
-         <property name="text">
-          <string>调制频率：</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="lineEditFrequency">
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="labelMaxVoltage">
+       <item row="2" column="0">
+        <widget class="QLabel" name="labelVolQuantiLevel">
          <property name="focusPolicy">
           <enum>Qt::ClickFocus</enum>
          </property>
@@ -57,12 +40,35 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEditMaxVoltage">
-         <property name="readOnly">
-          <bool>true</bool>
+       <item row="4" column="0" colspan="2">
+        <widget class="QPushButton" name="pushButtonApply">
+         <property name="text">
+          <string>应用设置</string>
          </property>
         </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="labelMinDeltaTime">
+         <property name="focusPolicy">
+          <enum>Qt::ClickFocus</enum>
+         </property>
+         <property name="text">
+          <string>调制频率：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="lineEditMinDeltaTime"/>
+       </item>
+       <item row="0" column="0" colspan="2">
+        <widget class="QCheckBox" name="checkBoxRealTimeQuanti">
+         <property name="text">
+          <string>实时量化</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="lineEditVolQuantiLevel"/>
        </item>
       </layout>
      </widget>
@@ -126,7 +132,7 @@
           <enum>Qt::ClickFocus</enum>
          </property>
          <property name="text">
-          <string>点电压(%)：</string>
+          <string>点电压：</string>
          </property>
         </widget>
        </item>
@@ -220,6 +226,7 @@
     <addaction name="actionCut"/>
     <addaction name="actionPasteLast"/>
     <addaction name="actionPasteInsert"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>

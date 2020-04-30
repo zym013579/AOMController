@@ -18,14 +18,17 @@ public:
 private:
     Ui::DialogSetting *ui;
 
-    bool realTimeQuantify;
+private slots:
+    void recieveSettings(bool rTQ, int vQL, double mDT);
 
-    int volQuantiLevel;
-
-    double minDeltaTime;
+    void on_buttonBox_accepted();
 
 signals:
     void sendSettings(bool rTQ, int vQL, double mDT);
 };
+
+QString numberToStr(int num);
+
+QString numberToStr(double num);
 
 #endif // DIALOGSETTING_H
