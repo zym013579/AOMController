@@ -24,7 +24,6 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     ui->lineEditPointVoltage->setValidator(new QRegExpValidator(regExpUDouble, ui->lineEditPointVoltage));
 
     emit initWaveGraph(ui->widgetWave);
-    ui->lineEditMaxVol->setText("5");
     //edit->setDisX(MIN_X_DIS);
     //edit->setDisY(MIN_Y_DIS);
 
@@ -89,7 +88,7 @@ void WindowWaveDesigner::updateLineEditText()
     {
         ui->lineEditPointNumber->setText(numberToStr(i));
         ui->lineEditPointTime->setText(numberToStr(edit->x_at(i)));
-        ui->lineEditPointVoltage->setText(numberToStr(ui->lineEditMaxVol->text().toDouble()*edit->y_at(i)));
+        ui->lineEditPointVoltage->setText(numberToStr(100*edit->y_at(i)));
     }
 }
 
@@ -314,7 +313,7 @@ void WindowWaveDesigner::on_lineEditPointVoltage_textEdited(const QString &arg1)
     int i = witchPointclicked();
     if (i == -1 || arg1 == "")
         return;
-    edit->set_y(i, checkData(arg1.toDouble()/ui->lineEditMaxVol->text().toDouble(), 0, 1));
+    edit->set_y(i, checkData(arg1.toDouble()/100, 0, 1));
     emit updateGraph();
 }
 
@@ -371,7 +370,7 @@ void WindowWaveDesigner::on_lineEditPointVoltage_editingFinished()
         MSG_WARNING("没有选点");
         return;
     }
-    if (ui->lineEditPointVoltage->text().toDouble() > ui->lineEditMaxVol->text().toDouble())
+    if (ui->lineEditPointVoltage->text().toDouble() > 100)
     {
         emit dropStep();
         MSG_WARNING("点电压超出范围");
