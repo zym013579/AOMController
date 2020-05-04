@@ -30,35 +30,38 @@
        <string>当前器件参数</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_5">
-       <item row="2" column="0">
+       <item row="3" column="0">
         <widget class="QLabel" name="labelVolQuantiLevel">
          <property name="focusPolicy">
           <enum>Qt::ClickFocus</enum>
          </property>
          <property name="text">
-          <string>电压量化位数：</string>
+          <string>电压量化级数：</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="0" colspan="2">
+       <item row="5" column="0" colspan="2">
         <widget class="QPushButton" name="pushButtonApply">
          <property name="text">
           <string>应用设置</string>
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="lineEditMinDeltaTime"/>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="lineEditVolQuantiLevel"/>
+       </item>
+       <item row="2" column="0">
         <widget class="QLabel" name="labelMinDeltaTime">
          <property name="focusPolicy">
           <enum>Qt::ClickFocus</enum>
          </property>
          <property name="text">
-          <string>调制频率：</string>
+          <string>单位时间(us)：</string>
          </property>
         </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLineEdit" name="lineEditMinDeltaTime"/>
        </item>
        <item row="0" column="0" colspan="2">
         <widget class="QCheckBox" name="checkBoxRealTimeQuanti">
@@ -67,8 +70,15 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QLineEdit" name="lineEditVolQuantiLevel"/>
+       <item row="1" column="0">
+        <widget class="QLabel" name="labelMaxVol">
+         <property name="text">
+          <string>最大电压(V)：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="lineEditMaxVol"/>
        </item>
       </layout>
      </widget>

@@ -1,23 +1,40 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QSerialPortInfo>
+
+#include "windowwavedesigner.h"
+#include "dialogabout.h"
+#include "init.h"
+#include "command.h"
+#include <dbt.h>
+
+#define LINEEDIT_INFO(message) (ui->lineEditConnectStatus->setText(message))
+
+//#define REALTIME_QUANTIFY (ui->checkBoxRealTimeQuanti->isChecked())
+//#define VOL_QUANTIFY_LEVEL (ui->lineEditVoltageStatus->text().toInt())
+//#define UNIT_TIME (ui->lineEditFrequencyStatus->text().toDouble())
+
+#define SETCHECKBOX_REALTIME_QUANTIFY(enabled) (ui->checkBoxRealTimeQuanti->setChecked(enabled))
+#define SETTEXT_VOL_QUANTIFY_LEVEL(level) (ui->lineEditVoltageStatus->setText(numberToStr(level)))
+#define SETTEXT_UNIT_TIME(time) (ui->lineEditFrequencyStatus->setText(numberToStr(time)))
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     modu(new WaveData),
     edit(new WaveData),
     m_serialPortName({}),
-    m_serialPort(new QSerialPort),
-    connectError(false)
+    m_serialPort(new QSerialPort)
 {
     ui->setupUi(this);
 
     emit initWaveGraph(ui->widgetModulatingWave);
     emit initWaveGraph(ui->widgetEditingWave);
 
-    SET_REALTIME_QUANTIFY(DEFAULT_REALTIME_QUANTIFY);
-    SET_VOL_QUANTIFY_LEVEL(DEFAULT_VOL_QUANTIFY_LEVEL);
-    SET_UNIT_TIME(DEFAULT_UNIT_TIME);
+    SETCHECKBOX_REALTIME_QUANTIFY(DEFAULT_REALTIME_QUANTIFY);
+    SETTEXT_VOL_QUANTIFY_LEVEL(DEFAULT_VOL_QUANTIFY_LEVEL);
+    SETTEXT_UNIT_TIME(DEFAULT_UNIT_TIME);
 
     emit closePort();
     emit searchDevice();
@@ -42,21 +59,21 @@ MainWindow::~MainWindow()
 void MainWindow::updateModuGraph()
 {
     ui->widgetModulatingWave->xAxis->setRange(0, modu->x_at(modu->count()-1));
-    emit updateWaveGraph(ui->widgetModulatingWave, modu->x(), modu->y());
+    emit updateWaveGraph(ui->widgetModulatingWave, modu->x(), modu->y(), modu->maxVol);
 }
 
 void MainWindow::updateEditGraph()
 {
     ui->widgetEditingWave->xAxis->setRange(0, edit->x_at(edit->count()-1));
-    emit updateWaveGraph(ui->widgetEditingWave, edit->x(), edit->y());
+    emit updateWaveGraph(ui->widgetEditingWave, edit->x(), edit->y(), edit->maxVol);
 }
 
 void MainWindow::recieveWaveDataFromEditor(WaveData *data)
 {
     edit->copyData(data);
-    SET_REALTIME_QUANTIFY(data->getRealTimeQuantify());
-    SET_VOL_QUANTIFY_LEVEL(data->getVolQuantiLevel());
-    SET_UNIT_TIME(data->getMinDeltaTime());
+    SETCHECKBOX_REALTIME_QUANTIFY(data->getRealTimeQuantify());
+    SETTEXT_VOL_QUANTIFY_LEVEL(data->volQuantiLevel);
+    SETTEXT_UNIT_TIME(data->unitTime);
     emit updateEditGraph();
 }
 
@@ -250,7 +267,7 @@ void MainWindow::on_pushButtonSend_clicked()
         return;
     }
 
-    edit->quantify(UNIT_TIME, VOL_QUANTIFY_LEVEL); //量化数据
+    edit->quantify(edit->unitTime, edit->volQuantiLevel, true); //量化数据
     edit->save();
     QList<QByteArray*> sendInfoAll;
     int num = 0;
@@ -262,16 +279,7 @@ void MainWindow::on_pushButtonSend_clicked()
     bytenum++;
     for (int i = 0; i < edit->count()-1; i++)
     {
-        int y = trunc(edit->y_at(i)*VOL_QUANTIFY_LEVEL);
-//        if (y == VOL_QUANTIFY_LEVEL)    //防止下位机溢出，在级数较少时可能存在误差
-//            y--;
-
-//        if (y > 16383)
-//        {
-//            closePort();
-//            MSG_WARNING("波形转换发生致命错误");
-//            return;
-//        }
+        int y = qRound(edit->y_at(i)*(MAX_VOL_QUANTIFY_LEVEL*1.0)/(edit->volQuantiLevel*1.0))*edit->volQuantiLevel;
         y = ((y/128)*256 + (y%128)) | 0x8080;
         //sendInfo.append(y);
 //        t1.remove(1);
@@ -280,7 +288,7 @@ void MainWindow::on_pushButtonSend_clicked()
 //        sendInfo.append(t1);
 //        sendInfo.append(t2);
 
-        int dx = trunc((edit->x_at(i+1)-edit->x_at(i))/UNIT_TIME);
+        int dx = trunc((edit->x_at(i+1)-edit->x_at(i))/edit->unitTime);
 
         while (dx > 16383)  //2^14-1
         {
@@ -344,11 +352,12 @@ void MainWindow::on_pushButtonSend_clicked()
     {
         LINEEDIT_INFO("发送失败");
         MSG_WARNING("发送失败");
+        return;
     }
-    else
-    {
-        LINEEDIT_INFO("已发送");
-    }
+    LINEEDIT_INFO("已发送");
+    modu->clear();
+    modu->copyData(edit);
+    emit updateModuGraph();
 }
 
 void MainWindow::on_pushButtonConnect_clicked()
@@ -413,8 +422,11 @@ void initWaveGraph(QCustomPlot *target)
     target->replot();
 }
 
-void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y)
+void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y, double maxVol)
 {
+    for (int i = 0; i < y.count(); i++)
+        y.replace(i, y.at(i)*maxVol);
+    target->yAxis->setRange(-0.2*maxVol, 1.2*maxVol);
     target->graph(0)->setData(x.toVector(), y.toVector());
     target->replot();
 }

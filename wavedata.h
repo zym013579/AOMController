@@ -10,8 +10,11 @@ class WaveData
 {
 public:
     WaveData();
-
     ~WaveData();
+
+    int volQuantiLevel;
+
+    double unitTime, maxVol;
 
     /**
      * @brief 输出当前x轴数据
@@ -137,26 +140,20 @@ public:
 
     bool getRealTimeQuantify();
 
-    int getVolQuantiLevel();
-
-    double getMinDeltaTime();
-
-    void quantify(double dx = -1, int level = -1);
+    void quantify(double dx = -1, int level = -1, bool enforce = false);
 
 protected:
     bool realTimeQuantify;
 
-    int volQuantiLevel;
-
-    double unitTime;
+    int point;
 
     QList<double> dataX, dataY;
 
-    QList<QList<double>> historyX, historyY, futureX, futureY;
+    QList<QList<double>> historyX, historyY;
 
-    QList<int> historyVQL, futureVQL;
+    QList<int> historyVQL;
 
-    QList<double> historyMDT, futureMDT;
+    QList<double> historyMDT, historyMaxVol;
 };
 
 #endif // WAVEDATA_H

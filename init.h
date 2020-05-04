@@ -2,6 +2,7 @@
 #define SIGNAL_H
 
 //#define R_TTL 0x00
+//#include <QMessageBox>
 
 #define SEND_START "(1)"
 #define SEND_PAUSE "(2)"
@@ -14,7 +15,8 @@
 //#define RECV_ERROR "~"
 
 #define DEFAULT_VOL_QUANTIFY_LEVEL 4096-1   //2^14-1
-#define DEFAULT_UNIT_TIME 1
+#define MAX_VOL_QUANTIFY_LEVEL 4096-1
+#define DEFAULT_UNIT_TIME 1.0
 #define DEFAULT_REALTIME_QUANTIFY true
 
 #define QByteArray_MAX_NUM 9999

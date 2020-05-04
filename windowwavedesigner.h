@@ -1,33 +1,12 @@
 #ifndef WINDOWWAVEDESIGNER_H
 #define WINDOWWAVEDESIGNER_H
 
-#define MAX(a,b)  (((a)>(b))?(a):(b))
-#define MIN(a,b)  (((a)<(b))?(a):(b))
-
-#define X_VAL (ui->widgetWave->xAxis->pixelToCoord(event->pos().x()))
-#define Y_VAL (ui->widgetWave->yAxis->pixelToCoord(event->pos().y()))
-
-#define X_RANGE ((ui->widgetWave->width()-34-15)/30.0*5/ui->widgetWave->xAxis->range().size()*11/POINT_CIRCLE_SIZE)
-#define Y_RANGE ((ui->widgetWave->height()-14-24)/6.2/ui->widgetWave->yAxis->range().size()*11/POINT_CIRCLE_SIZE)
-
-#define MSG_WARNING(message) (QMessageBox::warning(this, "提示", message, QMessageBox::Ok, QMessageBox::Ok))
-
-#define POINT_CIRCLE_SIZE 13
-#define DEFAULT_X_DIS_P 5
-#define DEFAULT_X_DIS ((ui->widgetWave->graph()->dataCount()-1)?(ui->widgetWave->graph()->data()->at(ui->widgetWave->graph()->dataCount()-1)->key/(ui->widgetWave->graph()->dataCount()-1)):DEFAULT_X_DIS_P)
-//#define minDisX 1
-//#define MIN_Y_DIS 1.0/4096.0
-
 #include <QMainWindow>
-#include <QMessageBox>
 #include <QCloseEvent>
-#include <QFile>
-#include <QDir>
-#include <QDataStream>
-#include <QTextStream>
 
 #include "qcustomplot.h"
 #include "wavedata.h"
+
 
 namespace Ui {
 class WindowWaveDesigner;
@@ -173,7 +152,7 @@ signals:
 
 void initWaveGraph(QCustomPlot *target);
 
-void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y);
+void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y, double maxVol);
 
 /**
  * @brief 检测输入数据是否超出范围

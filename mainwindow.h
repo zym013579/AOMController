@@ -3,27 +3,9 @@
 
 #include <QMainWindow>
 #include <QSerialPort>
-#include <QSerialPortInfo>
-#include <QMessageBox>
-
-#define LINEEDIT_INFO(message) (ui->lineEditConnectStatus->setText(message))
-
-#define REALTIME_QUANTIFY (ui->checkBoxRealTimeQuanti->isChecked())
-#define VOL_QUANTIFY_LEVEL (ui->lineEditVoltageStatus->text().toInt()-1)
-#define UNIT_TIME (ui->lineEditFrequencyStatus->text().toDouble())
-
-#define SET_REALTIME_QUANTIFY(enabled) (ui->checkBoxRealTimeQuanti->setChecked(enabled))
-#define SET_VOL_QUANTIFY_LEVEL(level) (ui->lineEditVoltageStatus->setText(QString::number(level+1)))
-#define SET_UNIT_TIME(time) (ui->lineEditFrequencyStatus->setText(QString::number(time)))
-
-#include "windowwavedesigner.h"
-#include "dialogabout.h"
-//#include "dialogsetting.h"
-#include "dbt.h"
 
 #include "qcustomplot.h"
 #include "wavedata.h"
-#include "signal.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -85,8 +67,6 @@ private slots:
 
     bool sendCommandToDevice(QString command);
 
-    //void recieveSettings(bool rTQ, int vQL, double mDT);
-
     void on_pushButtonEditWave_clicked();
 
     void on_actionAbout_triggered();
@@ -105,24 +85,15 @@ private slots:
      * @return
      */
     bool nativeEvent(const QByteArray &eventType, void *message, long *result);
-    //void on_actionSetting_triggered();
 
 private:
     Ui::MainWindow *ui;
-
-    //WindowWaveDesigner *wDesigner;
-
-    //DialogAbout *wAbout;
-
-    //DialogSetting *wSetting;
 
     WaveData *modu, *edit;
 
     QStringList m_serialPortName;
 
     QSerialPort *m_serialPort;
-
-    bool connectError;
 
 signals:
     void sendSettings(WaveData *data);
@@ -140,7 +111,7 @@ void initWaveGraph(QCustomPlot *target);
  * @param x x轴数据
  * @param y y轴数据
  */
-void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y);
+void updateWaveGraph(QCustomPlot *target, QList<double> x, QList<double> y, double maxVol);
 
 QString numberToStr(int num);
 
