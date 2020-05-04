@@ -12,13 +12,12 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    emit defaultSettingsInit();
     emit initWaveGraph(ui->widgetModulatingWave);
     emit initWaveGraph(ui->widgetEditingWave);
 
     SET_REALTIME_QUANTIFY(DEFAULT_REALTIME_QUANTIFY);
     SET_VOL_QUANTIFY_LEVEL(DEFAULT_VOL_QUANTIFY_LEVEL);
-    SET_MIN_DELTA_TIME(DEFAULT_MIN_DELTA_TIME);
+    SET_UNIT_TIME(DEFAULT_UNIT_TIME);
 
     emit closePort();
     emit searchDevice();
@@ -40,15 +39,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::defaultSettingsInit()
-{
-    //wDesigner->realTimeQuantify = realTimeQuantify;    //传递信息
-    //wDesigner->minDeltaTime = minDeltaTime;
-    //wDesigner->minDeltaVoltage = 1.0/volQuantiLevel;
-    //ui->lineEditVoltageStatus->setText(QString::number(volQuantiLevel));
-    //ui->lineEditFrequencyStatus->setText(QString::number(minDeltaTime));
-}
-
 void MainWindow::updateModuGraph()
 {
     ui->widgetModulatingWave->xAxis->setRange(0, modu->x_at(modu->count()-1));
@@ -66,7 +56,7 @@ void MainWindow::recieveWaveDataFromEditor(WaveData *data)
     edit->copyData(data);
     SET_REALTIME_QUANTIFY(data->getRealTimeQuantify());
     SET_VOL_QUANTIFY_LEVEL(data->getVolQuantiLevel());
-    SET_MIN_DELTA_TIME(data->getMinDeltaTime());
+    SET_UNIT_TIME(data->getMinDeltaTime());
     emit updateEditGraph();
 }
 
@@ -260,11 +250,16 @@ void MainWindow::on_pushButtonSend_clicked()
         return;
     }
 
-    edit->quantify(MIN_DELTA_TIME, VOL_QUANTIFY_LEVEL); //量化数据
+    edit->quantify(UNIT_TIME, VOL_QUANTIFY_LEVEL); //量化数据
     edit->save();
-    QByteArray sendInfo = ""; //要发送的数据
+    QList<QByteArray*> sendInfoAll;
+    int num = 0;
+    int bytenum = 0;
+    sendInfoAll.append(new QByteArray);
+    QByteArray *sendInfo = sendInfoAll[num]; //要发送的数据
 
-    sendInfo.append('{');
+    sendInfo->append('{');
+    bytenum++;
     for (int i = 0; i < edit->count()-1; i++)
     {
         int y = trunc(edit->y_at(i)*VOL_QUANTIFY_LEVEL);
@@ -285,37 +280,70 @@ void MainWindow::on_pushButtonSend_clicked()
 //        sendInfo.append(t1);
 //        sendInfo.append(t2);
 
-        int dx = trunc((edit->x_at(i+1)-edit->x_at(i))/MIN_DELTA_TIME);
+        int dx = trunc((edit->x_at(i+1)-edit->x_at(i))/UNIT_TIME);
 
         while (dx > 16383)  //2^14-1
         {
-            sendInfo.append(y/0x100);
-            sendInfo.append(y%0x100);
+            sendInfo->append(y/0x100);
+            sendInfo->append(y%0x100);
             int times = dx/16384;
             if (times > 127)
                 times = 127;
-            sendInfo.append('M');
-            sendInfo.append(times|0x80);
+            sendInfo->append('M');
+            sendInfo->append(times|0x80);
             dx = dx - 16384*times;
-            sendInfo.append(';');
+            sendInfo->append(';');
+            bytenum += 5;
+            if (bytenum > QByteArray_MAX_NUM-6)
+            {
+                num++;
+                sendInfoAll.append(new QByteArray);
+                sendInfo = sendInfoAll[num];
+                bytenum = 0;
+            }
         }
 
         if (dx > 0)
         {
-            sendInfo.append(y/0x100);
-            sendInfo.append(y%0x100);
+            sendInfo->append(y/0x100);
+            sendInfo->append(y%0x100);
             dx = ((dx/128)*256 + (dx%128)) | 0x8080;
-            sendInfo.append(dx/0x100);
-            sendInfo.append(dx%0x100);
-            sendInfo.append(';');
+            sendInfo->append(dx/0x100);
+            sendInfo->append(dx%0x100);
+            sendInfo->append(';');
+            bytenum += 5;
+            if (bytenum > QByteArray_MAX_NUM-6)
+            {
+                num++;
+                sendInfoAll.append(new QByteArray);
+                sendInfo = sendInfoAll[num];
+                bytenum = 0;
+            }
         }
     }
-    sendInfo.append('}');
+    sendInfo->append('}');
 
-    if (!sendToDevice(&sendInfo))
+    //QString t;
+    //for (int i = 0; i < sendInfoAll.count(); i++)
+    //    t.append(sendInfoAll[i]->to);
+
+    bool isOk = true;
+    for (int i = 0; i <= num; i++)
     {
-        LINEEDIT_INFO("发送超时");
-        MSG_WARNING("发送超时");
+        if (!isOk)
+        {
+            delete sendInfoAll[i];
+            continue;
+        }
+        if (!sendToDevice(sendInfoAll[i]))
+            isOk = false;
+        delete sendInfoAll[i];
+    }
+
+    if (!isOk)
+    {
+        LINEEDIT_INFO("发送失败");
+        MSG_WARNING("发送失败");
     }
     else
     {

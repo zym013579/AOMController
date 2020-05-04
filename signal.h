@@ -14,7 +14,9 @@
 //#define RECV_ERROR "~"
 
 #define DEFAULT_VOL_QUANTIFY_LEVEL 4096-1   //2^14-1
-#define DEFAULT_MIN_DELTA_TIME 1
+#define DEFAULT_UNIT_TIME 1
 #define DEFAULT_REALTIME_QUANTIFY true
+
+#define QByteArray_MAX_NUM 9999
 
 #endif // SIGNAL_H

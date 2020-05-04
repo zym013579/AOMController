@@ -13,14 +13,18 @@
 #define MSG_WARNING(message) (QMessageBox::warning(this, "提示", message, QMessageBox::Ok, QMessageBox::Ok))
 
 #define POINT_CIRCLE_SIZE 13
-#define DEFAULT_X_DIS ((ui->widgetWave->graph()->dataCount()-1)?(ui->widgetWave->graph()->data()->at(ui->widgetWave->graph()->dataCount()-1)->key/(ui->widgetWave->graph()->dataCount()-1)):5)
+#define DEFAULT_X_DIS_P 5
+#define DEFAULT_X_DIS ((ui->widgetWave->graph()->dataCount()-1)?(ui->widgetWave->graph()->data()->at(ui->widgetWave->graph()->dataCount()-1)->key/(ui->widgetWave->graph()->dataCount()-1)):DEFAULT_X_DIS_P)
 //#define minDisX 1
 //#define MIN_Y_DIS 1.0/4096.0
 
 #include <QMainWindow>
-
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <QFile>
+#include <QDir>
+#include <QDataStream>
+#include <QTextStream>
 
 #include "qcustomplot.h"
 #include "wavedata.h"
@@ -142,6 +146,8 @@ private slots:
     void on_pushButtonInsert_clicked();
 
     void on_pushButtonApply_clicked();
+
+    void on_actionOpenFile_triggered();
 
 private:
     Ui::WindowWaveDesigner *ui;

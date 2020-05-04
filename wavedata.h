@@ -32,6 +32,8 @@ public:
      */
     void add(double x, double y);
 
+    void add(QList<double> x, QList<double> y);
+
     /**
      * @brief 清除所有数据
      */
@@ -146,7 +148,7 @@ protected:
 
     int volQuantiLevel;
 
-    double minDeltaTime;
+    double unitTime;
 
     QList<double> dataX, dataY;
 

@@ -10,11 +10,11 @@
 
 #define REALTIME_QUANTIFY (ui->checkBoxRealTimeQuanti->isChecked())
 #define VOL_QUANTIFY_LEVEL (ui->lineEditVoltageStatus->text().toInt()-1)
-#define MIN_DELTA_TIME (ui->lineEditFrequencyStatus->text().toDouble())
+#define UNIT_TIME (ui->lineEditFrequencyStatus->text().toDouble())
 
 #define SET_REALTIME_QUANTIFY(enabled) (ui->checkBoxRealTimeQuanti->setChecked(enabled))
 #define SET_VOL_QUANTIFY_LEVEL(level) (ui->lineEditVoltageStatus->setText(QString::number(level+1)))
-#define SET_MIN_DELTA_TIME(time) (ui->lineEditFrequencyStatus->setText(QString::number(time)))
+#define SET_UNIT_TIME(time) (ui->lineEditFrequencyStatus->setText(QString::number(time)))
 
 #include "windowwavedesigner.h"
 #include "dialogabout.h"
@@ -38,10 +38,6 @@ public:
     ~MainWindow();
 
 private slots:
-    /**
-     * @brief 对特定单片机所编写的初始设置选项
-     */
-    void defaultSettingsInit();
     /**
      * @brief 更新本窗口的正在调制图像
      */

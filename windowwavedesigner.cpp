@@ -398,3 +398,93 @@ void WindowWaveDesigner::on_pushButtonApply_clicked()
     emit choosePoint(-1);
     emit updateGraph();
 }
+
+void WindowWaveDesigner::on_actionOpenFile_triggered()
+{
+    QString aFileName=QFileDialog::getOpenFileName(this,"打开波形文件",QDir::currentPath(),"文本文件(*.txt);;所有文件(*.*)");
+    if (aFileName.isEmpty())
+        return;
+    if (!QFile(aFileName).exists())
+    {
+        MSG_WARNING("文件不存在");
+        return;
+    }
+    freopen(aFileName.toLatin1(), "r", stdin);
+    char t;
+    double n;
+    double maxY = 1;//!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    double dx = 0;
+    WaveData data;
+    data.clear();
+    data.setRealTimeQuantify(true);
+    data.quantify(DEFAULT_UNIT_TIME, DEFAULT_VOL_QUANTIFY_LEVEL);
+    QList<double> x, y;
+    int err = scanf("%c", &t);
+    while (true)
+    {
+        if (err == EOF)
+        {
+            MSG_WARNING("文件读取失败");
+            fclose(stdin);
+            return;
+        }
+        if (t == '\n')
+        {
+            scanf("%c", &t);
+            break;
+        }
+        if (t != ' ')
+        {
+            MSG_WARNING("文件格式错误");
+            fclose(stdin);
+            return;
+        }
+        scanf("%lf", &n);
+        if (x.count() == 0)
+            dx = n;
+        else if (n < x.last()+data.getMinDeltaTime()+dx)
+        {
+            MSG_WARNING("请按时间顺序排列，并且注意间距要大于最小量化时间");
+            fclose(stdin);
+            return;
+        }
+        x.append(n-dx);
+        err = scanf("%c", &t);
+    }
+    while (true)
+    {
+        if (err == EOF)
+        {
+            MSG_WARNING("文件读取失败");
+            fclose(stdin);
+            return;
+        }
+        if (t == '\n')
+            break;
+        if (t != ' ')
+        {
+            MSG_WARNING("文件格式错误");
+            fclose(stdin);
+            return;
+        }
+        scanf("%lf", &n);
+        if (n < 0 || n > maxY)
+        {
+            MSG_WARNING("电压值超出范围");
+            fclose(stdin);
+            return;
+        }
+        y.append(n);
+        err = scanf("%c", &t);
+    }
+    fclose(stdin);
+    if (x.count() != y.count())
+    {
+        MSG_WARNING("数据数目不对等");
+        return;
+    }
+    data.add(x, y);
+    edit->copyData(&data);
+    emit updateGraph();
+    emit choosePoint(-1);
+}

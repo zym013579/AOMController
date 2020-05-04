@@ -17,7 +17,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     dialogabout.cpp \
-    dialogsetting.cpp \
     main.cpp \
     mainwindow.cpp \
     qcustomplot.cpp \
@@ -26,7 +25,6 @@ SOURCES += \
 
 HEADERS += \
     dialogabout.h \
-    dialogsetting.h \
     mainwindow.h \
     qcustomplot.h \
     signal.h \
@@ -35,7 +33,6 @@ HEADERS += \
 
 FORMS += \
     dialogabout.ui \
-    dialogsetting.ui \
     mainwindow.ui \
     windowwavedesigner.ui
 
