@@ -128,12 +128,14 @@ private slots:
 
     void on_actionOpenFile_triggered();
 
+    void on_actionClear_triggered();
+
 private:
     Ui::WindowWaveDesigner *ui;
 
     WaveData *edit;
 
-    bool mouseHasMoved;
+    bool mouseHasMoved, saved;
 
     /**
      * @param c_point 点击已选中的点时改变值

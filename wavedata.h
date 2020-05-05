@@ -12,10 +12,6 @@ public:
     WaveData();
     ~WaveData();
 
-    int volQuantiLevel;
-
-    double unitTime, maxVol;
-
     /**
      * @brief 输出当前x轴数据
      * @return x轴数据
@@ -59,14 +55,14 @@ public:
      * @param i 点序号
      * @return 某个点的x轴数据
      */
-    double x_at(int i);
+    double xAt(int i);
 
     /**
      * @brief 某个点的y轴数据
      * @param i 点序号
      * @return 某个点的y轴数据
      */
-    double y_at(int i);
+    double yAt(int i);
 
     /**
      * @brief 更改某个点的数据
@@ -81,14 +77,14 @@ public:
      * @param i 点序号
      * @param x x轴
      */
-    void set_x(int i, double x);
+    void setX(int i, double x);
 
     /**
      * @brief 更改某个点的数据
      * @param i 点序号
      * @param y y轴
      */
-    void set_y(int i, double y);
+    void setY(int i, double y);
 
     /**
      * @brief 删除某个点
@@ -118,7 +114,7 @@ public:
      * @brief 能够撤销的步数
      * @return 步数
      */
-    int count_unDo();
+    int countUnDo();
 
     /**
      * @brief 还原一步
@@ -129,7 +125,7 @@ public:
      * @brief 能够还原的步数
      * @return 步数
      */
-    int count_reDo();
+    int countReDo();
 
     /**
      * @brief 放弃当前图像数据(恢复至更改前，一般用于丢弃无需保存实时显示数据)
@@ -140,12 +136,28 @@ public:
 
     bool getRealTimeQuantify();
 
+    void setVolQuantiLevel(int level);
+
+    int getVolQuantiLevel();
+
+    void setUnitTime(double time);
+
+    double getUnitTime();
+
+    void setMaxVol(double vol);
+
+    double getMaxVol();
+
     void quantify(double dx = -1, int level = -1, bool enforce = false);
 
 protected:
+    int point;
+
     bool realTimeQuantify;
 
-    int point;
+    int volQuantiLevel;
+
+    double unitTime, maxVol;
 
     QList<double> dataX, dataY;
 

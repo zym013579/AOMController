@@ -13,7 +13,7 @@
 #define X_RANGE ((ui->widgetWave->width()-34-15)/30.0*5/ui->widgetWave->xAxis->range().size()*11/POINT_CIRCLE_SIZE)
 #define Y_RANGE ((ui->widgetWave->height()-14-24)/6.2/ui->widgetWave->yAxis->range().size()*11/POINT_CIRCLE_SIZE)
 
-#define POINT_CIRCLE_SIZE 13
+#define POINT_CIRCLE_SIZE 11
 #define DEFAULT_X_DIS_P 5
 #define DEFAULT_X_DIS ((ui->widgetWave->graph()->dataCount()-1)?(ui->widgetWave->graph()->data()->at(ui->widgetWave->graph()->dataCount()-1)->key/(ui->widgetWave->graph()->dataCount()-1)):DEFAULT_X_DIS_P)
 
@@ -32,6 +32,7 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     ui(new Ui::WindowWaveDesigner),
     edit(new WaveData),
     mouseHasMoved(false),
+    saved(true),
     c_point(-1)    //选中已选择的点时改变值
 
 {
@@ -82,12 +83,12 @@ void WindowWaveDesigner::recieveSettings(WaveData *data)
     edit->copyData(data);
     edit->quantify();
     SETCHECKBOX_REALTIME_QUANTIFY(edit->getRealTimeQuantify());
-    SETTEXT_UNIT_TIME(edit->unitTime);
-    SETTEXT_VOL_QUANTIFY_LEVEL(edit->volQuantiLevel);
-    SETTEXT_MAX_VOL(edit->maxVol);
+    SETTEXT_UNIT_TIME(edit->getUnitTime());
+    SETTEXT_VOL_QUANTIFY_LEVEL(edit->getVolQuantiLevel());
+    SETTEXT_MAX_VOL(edit->getMaxVol());
     emit freshUndoRedoButton();
     if (edit->count() > 1)
-        ui->widgetWave->xAxis->setRange(-0.05*edit->x_at(edit->count()-1), 1.05*edit->x_at(edit->count()-1));
+        ui->widgetWave->xAxis->setRange(-0.05*edit->xAt(edit->count()-1), 1.05*edit->xAt(edit->count()-1));
     else
         ui->widgetWave->xAxis->setRange(-0.25, 20.2);  //tmp
     emit choosePoint(-1);
@@ -95,11 +96,11 @@ void WindowWaveDesigner::recieveSettings(WaveData *data)
 
 void WindowWaveDesigner::updateGraph()
 {
-    emit updateWaveGraph(ui->widgetWave, edit->x(), edit->y(), edit->maxVol);
-    SETTEXT_UNIT_TIME(edit->unitTime);
-    SETTEXT_VOL_QUANTIFY_LEVEL(edit->volQuantiLevel);
+    emit updateWaveGraph(ui->widgetWave, edit->x(), edit->y(), edit->getMaxVol());
+    SETTEXT_UNIT_TIME(edit->getUnitTime());
+    SETTEXT_VOL_QUANTIFY_LEVEL(edit->getVolQuantiLevel());
     SETCHECKBOX_REALTIME_QUANTIFY(edit->getRealTimeQuantify());
-    SETTEXT_MAX_VOL(edit->maxVol);
+    SETTEXT_MAX_VOL(edit->getMaxVol());
 }
 
 void WindowWaveDesigner::updateLineEditText()
@@ -114,14 +115,15 @@ void WindowWaveDesigner::updateLineEditText()
     else
     {
         ui->lineEditPointNumber->setText(numberToStr(i));
-        ui->lineEditPointTime->setText(numberToStr(edit->x_at(i)));
-        ui->lineEditPointVoltage->setText(numberToStr(edit->maxVol*edit->y_at(i)));
+        ui->lineEditPointTime->setText(numberToStr(edit->xAt(i)));
+        ui->lineEditPointVoltage->setText(numberToStr(edit->getMaxVol()*edit->yAt(i)));
     }
 }
 
 void WindowWaveDesigner::saveStep()
 {
     edit->save();
+    saved = false;
     emit freshUndoRedoButton();
 }
 
@@ -134,7 +136,7 @@ void WindowWaveDesigner::dropStep()
 
 void WindowWaveDesigner::undoStep()
 {
-    if (edit->count_unDo() < 1)
+    if (edit->countUnDo() < 1)
         return;
     edit->unDo();
     emit freshUndoRedoButton();
@@ -143,7 +145,7 @@ void WindowWaveDesigner::undoStep()
 
 void WindowWaveDesigner::redoStep()
 {
-    if (edit->count_reDo() < 1)
+    if (edit->countReDo() < 1)
         return;
     edit->reDo();
     emit freshUndoRedoButton();
@@ -152,12 +154,12 @@ void WindowWaveDesigner::redoStep()
 
 void WindowWaveDesigner::freshUndoRedoButton()
 {
-    if (edit->count_unDo() > 0)
+    if (edit->countUnDo() > 0)
         ui->actionUndo->setEnabled(true);
     else
         ui->actionUndo->setEnabled(false);
 
-    if (edit->count_reDo() > 0)
+    if (edit->countReDo() > 0)
         ui->actionRedo->setEnabled(true);
     else
         ui->actionRedo->setEnabled(false);
@@ -167,11 +169,11 @@ int WindowWaveDesigner::witchPointclicking(QMouseEvent *event)
 {
     for (int i=0; i<edit->count(); i++)
     {
-        if ((X_VAL-edit->x_at(i))*X_RANGE > 1)
+        if ((X_VAL-edit->xAt(i))*X_RANGE > 1)
             continue;
-        else if ((X_VAL-edit->x_at(i))*X_RANGE*(X_VAL-edit->x_at(i))*X_RANGE + (Y_VAL-edit->y_at(i))*Y_RANGE*(Y_VAL-edit->y_at(i))*Y_RANGE <= 1)
+        else if ((X_VAL-edit->xAt(i))*X_RANGE*(X_VAL-edit->xAt(i))*X_RANGE + (Y_VAL-edit->yAt(i))*Y_RANGE*(Y_VAL-edit->yAt(i))*Y_RANGE <= 1)
             return i;
-        else if ((X_VAL-edit->x_at(i))*X_RANGE < -1)
+        else if ((X_VAL-edit->xAt(i))*X_RANGE < -1)
             break;
     }
     return -1;
@@ -195,20 +197,6 @@ void WindowWaveDesigner::choosePoint(int i, int j)
     emit updateGraph();
     emit updateLineEditText();
 }
-
-//void WindowWaveDesigner::recieveWaveData(WaveData *data)
-//{
-//    edit->clear();
-//    edit->setdata->getRealTimeQuantify()(data->getRealTimeQuantify());
-//    edit->copyData(data);
-//    edit->quantify(minDeltaTime, volQuantiLevel);
-//    emit freshUndoRedoButton();
-//    if (edit->count() > 1)
-//        ui->widgetWave->xAxis->setRange(-0.05*edit->x_at(edit->count()-1), 1.05*edit->x_at(edit->count()-1));
-//    else
-//        ui->widgetWave->xAxis->setRange(-0.25, 20.2);  //tmp
-//    emit choosePoint(-1);
-//}
 
 void WindowWaveDesigner::on_widgetWave_mousePress(QMouseEvent *event)
 {
@@ -241,9 +229,9 @@ void WindowWaveDesigner::on_widgetWave_mouseMove(QMouseEvent *event)
     if (c_point == 0)
         x_val = 0;
     else if (c_point != edit->count()-1)
-        x_val = checkData(X_VAL, edit->x_at(c_point-1)+edit->unitTime, edit->x_at(c_point+1)-edit->unitTime);
+        x_val = checkData(X_VAL, edit->xAt(c_point-1)+edit->getUnitTime(), edit->xAt(c_point+1)-edit->getUnitTime());
     else
-        x_val = MAX(edit->x_at(c_point-1)+edit->unitTime, X_VAL);
+        x_val = MAX(edit->xAt(c_point-1)+edit->getUnitTime(), X_VAL);
     edit->set(c_point, x_val, checkData(Y_VAL, 0, 1));
     emit updateGraph();
     emit updateLineEditText();
@@ -251,6 +239,8 @@ void WindowWaveDesigner::on_widgetWave_mouseMove(QMouseEvent *event)
 
 void WindowWaveDesigner::closeEvent(QCloseEvent *event)
 {
+    if (saved)
+        return;
     QMessageBox::StandardButton result = QMessageBox::information(this, "提示", "波形尚未应用，是否应用波形？", QMessageBox::Yes|QMessageBox::Save|QMessageBox::Discard|QMessageBox::Cancel, QMessageBox::Cancel);
     //event->accept();
     //event->ignore();
@@ -261,12 +251,11 @@ void WindowWaveDesigner::closeEvent(QCloseEvent *event)
     //else if (result == QMessageBox::Discard) ;
     else if (result == QMessageBox::Cancel)
         event->ignore();
-    return;
 }
 
 void WindowWaveDesigner::on_pushButtonNew_clicked()
 {
-    edit->add(edit->x_at(edit->count()-1)+DEFAULT_X_DIS, edit->y_at(edit->count()-1));
+    edit->add(edit->xAt(edit->count()-1)+DEFAULT_X_DIS, edit->yAt(edit->count()-1));
     emit saveStep();
     emit updateGraph();
 }
@@ -276,8 +265,8 @@ void WindowWaveDesigner::on_pushButtonInsert_clicked()
     int i = witchPointclicked();
     if (i == -1 || i == edit->count()-1)
         emit on_pushButtonNew_clicked();
-    else if (edit->x_at(i+1)-edit->x_at(i) > 10*edit->unitTime)
-        edit->insert(i+1, (edit->x_at(i+1)+edit->x_at(i))/2.0, edit->y_at(i));
+    else if (edit->xAt(i+1)-edit->xAt(i) >= 2.0*edit->getUnitTime())
+        edit->insert(i+1, (edit->xAt(i+1)+edit->xAt(i))/2.0, edit->yAt(i));
     else
         MSG_WARNING("两点间距过小，不能插入");
     emit saveStep();
@@ -287,6 +276,7 @@ void WindowWaveDesigner::on_pushButtonInsert_clicked()
 void WindowWaveDesigner::on_pushButtonSave_clicked()
 {
     emit sendWaveData(edit);
+    saved = true;
     // test部分
     //choosePoint(ui->lineEditPointNumber->text().toInt(), ui->lineEditFrequency->text().toInt());
     //qDebug() << ui->widgetWave->graph()->data()->at(ui->widgetWave->graph()->dataCount()-1)->key/(ui->widgetWave->graph()->dataCount()-1);
@@ -329,9 +319,9 @@ void WindowWaveDesigner::on_lineEditPointTime_textEdited(const QString &arg1)
     if (i == -1 || arg1 == "" || i == 0)
         return;
     if (i == edit->count()-1)
-        edit->set_x(i, MAX(edit->x_at(i-1), arg1.toDouble()));
+        edit->setX(i, MAX(edit->xAt(i-1), arg1.toDouble()));
     else
-        edit->set_x(i, checkData(arg1.toDouble(), edit->x_at(i-1)+edit->unitTime, edit->x_at(i+1)-edit->unitTime));
+        edit->setX(i, checkData(arg1.toDouble(), edit->xAt(i-1)+edit->getUnitTime(), edit->xAt(i+1)-edit->getUnitTime()));
     emit updateGraph();
 }
 
@@ -340,7 +330,7 @@ void WindowWaveDesigner::on_lineEditPointVoltage_textEdited(const QString &arg1)
     int i = witchPointclicked();
     if (i == -1 || arg1 == "")
         return;
-    edit->set_y(i, checkData(arg1.toDouble()/edit->maxVol, 0, 1));
+    edit->setY(i, checkData(arg1.toDouble()/edit->getMaxVol(), 0, 1));
     emit updateGraph();
 }
 
@@ -373,13 +363,13 @@ void WindowWaveDesigner::on_lineEditPointTime_editingFinished()
         }
         return; //由于起始点时间总是为0，不需要保存，直接返回
     }
-    if (ui->lineEditPointTime->text().toDouble() < edit->x_at(i-1)+edit->unitTime)
+    if (ui->lineEditPointTime->text().toDouble() < edit->xAt(i-1)+edit->getUnitTime())
     {
         emit dropStep();
         MSG_WARNING("点时间过小");
         return;
     }
-    if (i < edit->count()-1 && ui->lineEditPointTime->text().toDouble() > edit->x_at(i+1)-edit->unitTime)
+    if (i < edit->count()-1 && ui->lineEditPointTime->text().toDouble() > edit->xAt(i+1)-edit->getUnitTime())
     {
         emit dropStep();
         MSG_WARNING("点时间过大");
@@ -397,7 +387,7 @@ void WindowWaveDesigner::on_lineEditPointVoltage_editingFinished()
         MSG_WARNING("没有选点");
         return;
     }
-    if (ui->lineEditPointVoltage->text().toDouble() > edit->maxVol)
+    if (ui->lineEditPointVoltage->text().toDouble() > edit->getMaxVol())
     {
         emit dropStep();
         MSG_WARNING("点电压超出范围");
@@ -419,8 +409,8 @@ void WindowWaveDesigner::on_pushButtonApply_clicked()
     //edit->sevolQuantiLevel = TEXT_VOL_QUANTIFY_LEVEL;
     //minDeltaTime = TEXT_UNIT_TIME;
     edit->quantify(TEXT_UNIT_TIME, TEXT_VOL_QUANTIFY_LEVEL);
-    edit->maxVol = TEXT_MAX_VOL;
-    edit->save();
+    edit->setMaxVol(TEXT_MAX_VOL);
+    emit saveStep();
     emit choosePoint(-1);
     emit updateGraph();
 }
@@ -476,7 +466,7 @@ void WindowWaveDesigner::on_actionOpenFile_triggered()
         scanf("%lf", &n);
         if (x.count() == 0)
             dx = n;
-        else if (n < x.last()+data.unitTime+dx)
+        else if (n < x.last()+data.getUnitTime()+dx)
         {
             MSG_WARNING("请按时间顺序排列，并且注意间距要大于最小量化时间");
             fclose(stdin);
@@ -519,7 +509,19 @@ void WindowWaveDesigner::on_actionOpenFile_triggered()
     }
     data.add(x, y);
     edit->copyData(&data);
-    edit->save();
-    emit updateGraph();
+    emit saveStep();
     emit choosePoint(-1);
+}
+
+void WindowWaveDesigner::on_actionClear_triggered()
+{
+    WaveData tmp;
+    tmp.clear();
+    tmp.setRealTimeQuantify(edit->getRealTimeQuantify());
+    tmp.setVolQuantiLevel(edit->getVolQuantiLevel());
+    tmp.setUnitTime(edit->getUnitTime());
+    tmp.setMaxVol(edit->getMaxVol());
+    tmp.add(0, 0);
+    edit->copyData(&tmp);
+    choosePoint(-1);
 }

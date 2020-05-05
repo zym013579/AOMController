@@ -27,7 +27,7 @@
        <enum>Qt::ClickFocus</enum>
       </property>
       <property name="title">
-       <string>当前器件参数</string>
+       <string>参数</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_5">
        <item row="3" column="0">
@@ -161,13 +161,13 @@
        <enum>Qt::ClickFocus</enum>
       </property>
       <property name="title">
-       <string>保存&amp;&amp;返回</string>
+       <string> </string>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0">
         <widget class="QPushButton" name="pushButtonSave">
          <property name="text">
-          <string>保存</string>
+          <string>应用波形</string>
          </property>
         </widget>
        </item>
@@ -214,7 +214,6 @@
     <property name="title">
      <string>文件</string>
     </property>
-    <addaction name="actionNewFile"/>
     <addaction name="actionOpenFile"/>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAsFile"/>
@@ -231,6 +230,7 @@
     <addaction name="actionNewPoint"/>
     <addaction name="actionInsertPoint"/>
     <addaction name="actionDeletePoint"/>
+    <addaction name="actionClear"/>
     <addaction name="separator"/>
     <addaction name="actionCopy"/>
     <addaction name="actionCut"/>
@@ -242,11 +242,6 @@
    <addaction name="menuEdit"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionNewFile">
-   <property name="text">
-    <string>新建</string>
-   </property>
-  </action>
   <action name="actionOpenFile">
    <property name="text">
     <string>打开</string>
@@ -348,6 +343,11 @@
     <string>Alt+V</string>
    </property>
   </action>
+  <action name="actionClear">
+   <property name="text">
+    <string>清除所有点</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -388,6 +388,70 @@
     <hint type="destinationlabel">
      <x>399</x>
      <y>299</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionNewPoint</sender>
+   <signal>triggered()</signal>
+   <receiver>pushButtonNew</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>311</x>
+     <y>437</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionInsertPoint</sender>
+   <signal>triggered()</signal>
+   <receiver>pushButtonInsert</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>311</x>
+     <y>482</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionDeletePoint</sender>
+   <signal>triggered()</signal>
+   <receiver>pushButtonDelete</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>311</x>
+     <y>527</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSave</sender>
+   <signal>triggered()</signal>
+   <receiver>pushButtonSave</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>729</x>
+     <y>452</y>
     </hint>
    </hints>
   </connection>

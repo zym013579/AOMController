@@ -19,6 +19,9 @@
 #define SETTEXT_VOL_QUANTIFY_LEVEL(level) (ui->lineEditVoltageStatus->setText(numberToStr(level)))
 #define SETTEXT_UNIT_TIME(time) (ui->lineEditFrequencyStatus->setText(numberToStr(time)))
 
+#define SET_MODUTEXT_VOL_QUANTIFY_LEVEL(level) (ui->lineEditModuVolQuntiLevel->setText(numberToStr(level)))
+#define SET_MODUTEXT_UNIT_TIME(time) (ui->lineEditModuUnitTime->setText(numberToStr(time)))
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -58,22 +61,25 @@ MainWindow::~MainWindow()
 
 void MainWindow::updateModuGraph()
 {
-    ui->widgetModulatingWave->xAxis->setRange(0, modu->x_at(modu->count()-1));
-    emit updateWaveGraph(ui->widgetModulatingWave, modu->x(), modu->y(), modu->maxVol);
+    //SETCHECKBOX_REALTIME_QUANTIFY(modu->getRealTimeQuantify());
+    SET_MODUTEXT_VOL_QUANTIFY_LEVEL(modu->getVolQuantiLevel());
+    SET_MODUTEXT_UNIT_TIME(modu->getUnitTime());
+    ui->widgetModulatingWave->xAxis->setRange(0, modu->xAt(modu->count()-1));
+    emit updateWaveGraph(ui->widgetModulatingWave, modu->x(), modu->y(), modu->getMaxVol());
 }
 
 void MainWindow::updateEditGraph()
 {
-    ui->widgetEditingWave->xAxis->setRange(0, edit->x_at(edit->count()-1));
-    emit updateWaveGraph(ui->widgetEditingWave, edit->x(), edit->y(), edit->maxVol);
+    SETCHECKBOX_REALTIME_QUANTIFY(edit->getRealTimeQuantify());
+    SETTEXT_VOL_QUANTIFY_LEVEL(edit->getVolQuantiLevel());
+    SETTEXT_UNIT_TIME(edit->getUnitTime());
+    ui->widgetEditingWave->xAxis->setRange(0, edit->xAt(edit->count()-1));
+    emit updateWaveGraph(ui->widgetEditingWave, edit->x(), edit->y(), edit->getMaxVol());
 }
 
 void MainWindow::recieveWaveDataFromEditor(WaveData *data)
 {
     edit->copyData(data);
-    SETCHECKBOX_REALTIME_QUANTIFY(data->getRealTimeQuantify());
-    SETTEXT_VOL_QUANTIFY_LEVEL(data->volQuantiLevel);
-    SETTEXT_UNIT_TIME(data->unitTime);
     emit updateEditGraph();
 }
 
@@ -267,7 +273,7 @@ void MainWindow::on_pushButtonSend_clicked()
         return;
     }
 
-    edit->quantify(edit->unitTime, edit->volQuantiLevel, true); //量化数据
+    edit->quantify(edit->getUnitTime(), edit->getVolQuantiLevel(), true); //量化数据
     edit->save();
     QList<QByteArray*> sendInfoAll;
     int num = 0;
@@ -279,7 +285,7 @@ void MainWindow::on_pushButtonSend_clicked()
     bytenum++;
     for (int i = 0; i < edit->count()-1; i++)
     {
-        int y = qRound(edit->y_at(i)*(MAX_VOL_QUANTIFY_LEVEL*1.0)/(edit->volQuantiLevel*1.0))*edit->volQuantiLevel;
+        int y = qRound(edit->yAt(i)*(MAX_VOL_QUANTIFY_LEVEL*1.0)/(edit->getVolQuantiLevel()*1.0))*edit->getVolQuantiLevel();
         y = ((y/128)*256 + (y%128)) | 0x8080;
         //sendInfo.append(y);
 //        t1.remove(1);
@@ -288,7 +294,7 @@ void MainWindow::on_pushButtonSend_clicked()
 //        sendInfo.append(t1);
 //        sendInfo.append(t2);
 
-        int dx = trunc((edit->x_at(i+1)-edit->x_at(i))/edit->unitTime);
+        int dx = trunc((edit->xAt(i+1)-edit->xAt(i))/edit->getUnitTime());
 
         while (dx > 16383)  //2^14-1
         {
@@ -302,7 +308,7 @@ void MainWindow::on_pushButtonSend_clicked()
             dx = dx - 16384*times;
             sendInfo->append(';');
             bytenum += 5;
-            if (bytenum > QByteArray_MAX_NUM-6)
+            if (bytenum > QByteArray_MAX_NUM-10)
             {
                 num++;
                 sendInfoAll.append(new QByteArray);
@@ -320,7 +326,7 @@ void MainWindow::on_pushButtonSend_clicked()
             sendInfo->append(dx%0x100);
             sendInfo->append(';');
             bytenum += 5;
-            if (bytenum > QByteArray_MAX_NUM-6)
+            if (bytenum > QByteArray_MAX_NUM-10)
             {
                 num++;
                 sendInfoAll.append(new QByteArray);

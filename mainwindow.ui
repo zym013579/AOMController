@@ -20,42 +20,133 @@
    <string>声光调制器任意波形控制器的上位机软件</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="mainGridLayout">
-    <item row="1" column="7">
-     <widget class="QPushButton" name="pushButtonStart">
-      <property name="enabled">
-       <bool>false</bool>
+   <layout class="QGridLayout" name="gridLayout_4" rowstretch="3,2,2,1" columnstretch="3,1">
+    <item row="3" column="1">
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>操作</string>
       </property>
-      <property name="text">
-       <string>开始调制</string>
-      </property>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="0" column="1">
+        <widget class="QPushButton" name="pushButtonStart">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>开始调制</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="pushButtonConnect">
+         <property name="text">
+          <string>连接下位机</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="pushButtonExit">
+         <property name="text">
+          <string>退出</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="pushButtonSend">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>发送波形</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
-    <item row="2" column="7">
-     <widget class="QPushButton" name="pushButtonExit">
-      <property name="text">
-       <string>退出</string>
+    <item row="1" column="1">
+     <widget class="QGroupBox" name="groupBox_2">
+      <property name="title">
+       <string>调制波形参数</string>
       </property>
+      <layout class="QGridLayout" name="gridLayout_6">
+       <item row="0" column="0">
+        <widget class="QLabel" name="labelModuUnitTime">
+         <property name="text">
+          <string>单位时间(us)：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="lineEditModuUnitTime">
+         <property name="text">
+          <string>N/A</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="labelModuVolQuntiLevel">
+         <property name="text">
+          <string>电压量化级数：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="lineEditModuVolQuntiLevel">
+         <property name="text">
+          <string>N/A</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
-    <item row="1" column="6">
-     <widget class="QPushButton" name="pushButtonConnect">
-      <property name="text">
-       <string>连接下位机</string>
+    <item row="0" column="0" rowspan="4">
+     <widget class="QGroupBox" name="groupBoxWave">
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
       </property>
+      <property name="title">
+       <string>波形预览</string>
+      </property>
+      <layout class="QGridLayout" name="gridLayout" columnstretch="2,9">
+       <item row="0" column="0">
+        <widget class="QLabel" name="labelModulatingWave">
+         <property name="text">
+          <string>调制波形：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QCustomPlot" name="widgetEditingWave" native="true"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="labelEditingWave">
+         <property name="text">
+          <string>编辑波形：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QCustomPlot" name="widgetModulatingWave" native="true"/>
+       </item>
+       <item row="2" column="0" colspan="2">
+        <widget class="QPushButton" name="pushButtonEditWave">
+         <property name="text">
+          <string>编辑波形</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
-    <item row="2" column="6">
-     <widget class="QPushButton" name="pushButtonSend">
-      <property name="enabled">
-       <bool>false</bool>
-      </property>
-      <property name="text">
-       <string>发送波形</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="6" colspan="2">
+    <item row="0" column="1">
      <widget class="QGroupBox" name="groupBoxStatus">
       <property name="enabled">
        <bool>true</bool>
@@ -64,66 +155,22 @@
        <string>状态</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="1">
-        <widget class="QComboBox" name="comboBoxPort"/>
-       </item>
-       <item row="5" column="0">
-        <widget class="QLabel" name="labelVoltageStatus">
-         <property name="text">
-          <string>电压量化级数：</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="labelConnectStatus">
-         <property name="text">
-          <string>下位机连接状态：</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="labelFrequencyStatus">
-         <property name="text">
-          <string>调制频率：</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="1">
-        <widget class="QLineEdit" name="lineEditVoltageStatus">
-         <property name="text">
-          <string>N/A</string>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QLineEdit" name="lineEditFrequencyStatus">
-         <property name="text">
-          <string>N/A</string>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLineEdit" name="lineEditConnectStatus">
-         <property name="text">
-          <string>未连接</string>
-         </property>
-         <property name="readOnly">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
        <item row="0" column="0">
         <widget class="QLabel" name="labelPort">
          <property name="text">
           <string>端口：</string>
          </property>
         </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="labelConnectStatus">
+         <property name="text">
+          <string>状态：</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="comboBoxPort"/>
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="labelRealTimeQuanti">
@@ -145,42 +192,56 @@
          </property>
         </widget>
        </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="lineEditConnectStatus">
+         <property name="text">
+          <string>未连接</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>
-    <item row="0" column="2" rowspan="3" colspan="4">
-     <widget class="QGroupBox" name="groupBoxWave">
-      <property name="layoutDirection">
-       <enum>Qt::LeftToRight</enum>
-      </property>
+    <item row="2" column="1">
+     <widget class="QGroupBox" name="groupBox_3">
       <property name="title">
-       <string>波形预览</string>
+       <string>编辑波形参数</string>
       </property>
-      <layout class="QGridLayout" name="gridLayout" columnstretch="2,5">
-       <item row="0" column="0">
-        <widget class="QLabel" name="labelModulatingWave">
+      <layout class="QGridLayout" name="gridLayout_5">
+       <item row="1" column="0">
+        <widget class="QLabel" name="labelVoltageStatus">
          <property name="text">
-          <string>正在调制波形：</string>
+          <string>电压量化级数：</string>
          </property>
         </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QCustomPlot" name="widgetEditingWave" native="true"/>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="labelEditingWave">
+        <widget class="QLineEdit" name="lineEditVoltageStatus">
          <property name="text">
-          <string>正在编辑波形：</string>
+          <string>N/A</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="labelFrequencyStatus">
+         <property name="text">
+          <string>单位时间(us)：</string>
          </property>
         </widget>
        </item>
        <item row="0" column="1">
-        <widget class="QCustomPlot" name="widgetModulatingWave" native="true"/>
-       </item>
-       <item row="2" column="0" colspan="2">
-        <widget class="QPushButton" name="pushButtonEditWave">
+        <widget class="QLineEdit" name="lineEditFrequencyStatus">
          <property name="text">
-          <string>编辑波形</string>
+          <string>N/A</string>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
          </property>
         </widget>
        </item>
@@ -203,6 +264,8 @@
      <string>菜单</string>
     </property>
     <addaction name="actionEditWave"/>
+    <addaction name="actionPreWave"/>
+    <addaction name="actionNextWave"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -220,6 +283,9 @@
    <property name="text">
     <string>波形编辑器</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
   </action>
   <action name="actionAbout">
    <property name="text">
@@ -229,6 +295,22 @@
   <action name="actionExit">
    <property name="text">
     <string>退出</string>
+   </property>
+  </action>
+  <action name="actionPreWave">
+   <property name="text">
+    <string>上一个波形</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionNextWave">
+   <property name="text">
+    <string>下一个波形</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
    </property>
   </action>
  </widget>

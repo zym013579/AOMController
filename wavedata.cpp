@@ -3,18 +3,18 @@
 #include "init.h"
 
 WaveData::WaveData() :
+    point(-1),
+    realTimeQuantify(DEFAULT_REALTIME_QUANTIFY),
     volQuantiLevel(DEFAULT_VOL_QUANTIFY_LEVEL),
     unitTime(DEFAULT_UNIT_TIME),
     maxVol(1),
-    realTimeQuantify(DEFAULT_REALTIME_QUANTIFY),
-    point(-1),
-    dataX(*(new QList<double>)),
-    dataY(*(new QList<double>)),
-    historyX(*(new QList<QList<double>>)),
-    historyY(*(new QList<QList<double>>)),
-    historyVQL(*(new QList<int>)),
-    historyMDT(*(new QList<double>)),
-    historyMaxVol(*(new QList<double>))
+    dataX(),
+    dataY(),
+    historyX(),
+    historyY(),
+    historyVQL(),
+    historyMDT(),
+    historyMaxVol()
 {
     //clear();
     dataX.append(0);
@@ -75,14 +75,15 @@ void WaveData::clear()
 
 void WaveData::copyData(WaveData *data)
 {
+    save();
     dataX.clear();
     dataY.clear();
     dataX.append(data->x());
     dataY.append(data->y());
-    realTimeQuantify = data->realTimeQuantify;
-    volQuantiLevel = data->volQuantiLevel;
-    unitTime = data->unitTime;
-    maxVol = data->maxVol;
+    realTimeQuantify = data->getRealTimeQuantify();
+    volQuantiLevel = data->getVolQuantiLevel();
+    unitTime = data->getUnitTime();
+    maxVol = data->getMaxVol();
     save();
 }
 
@@ -91,12 +92,12 @@ int WaveData::count()
     return dataX.size();
 }
 
-double WaveData::x_at(int i)
+double WaveData::xAt(int i)
 {
     return dataX.at(i);
 }
 
-double WaveData::y_at(int i)
+double WaveData::yAt(int i)
 {
     return dataY.at(i);
 }
@@ -110,11 +111,11 @@ void WaveData::set(int i, double x, double y)
         if (volQuantiLevel > 0)
             y = 1.0*qRound(y*volQuantiLevel)/volQuantiLevel;
     }
-    set_x(i, x);
-    set_y(i, y);
+    setX(i, x);
+    setY(i, y);
 }
 
-void WaveData::set_x(int i, double x)
+void WaveData::setX(int i, double x)
 {
     if (realTimeQuantify)
     {
@@ -124,7 +125,7 @@ void WaveData::set_x(int i, double x)
     dataX.replace(i, x);
 }
 
-void WaveData::set_y(int i, double y)
+void WaveData::setY(int i, double y)
 {
     if (realTimeQuantify)
     {
@@ -183,7 +184,7 @@ void WaveData::unDo()
     maxVol = historyMaxVol.at(point);
 }
 
-int WaveData::count_unDo()
+int WaveData::countUnDo()
 {
     return point;
 }
@@ -198,7 +199,7 @@ void WaveData::reDo()
     maxVol = historyMaxVol.at(point);
 }
 
-int WaveData::count_reDo()
+int WaveData::countReDo()
 {
     return historyX.count()-point-1;
 }
@@ -221,6 +222,39 @@ bool WaveData::getRealTimeQuantify()
     return realTimeQuantify;
 }
 
+void WaveData::setVolQuantiLevel(int level)
+{
+    volQuantiLevel = level;
+    quantify();
+}
+
+int WaveData::getVolQuantiLevel()
+{
+    return volQuantiLevel;
+}
+
+void WaveData::setUnitTime(double time)
+{
+    unitTime = time;
+    quantify();
+}
+
+double WaveData::getUnitTime()
+{
+    return unitTime;
+}
+
+void WaveData::setMaxVol(double vol)
+{
+    maxVol = vol;
+    quantify();
+}
+
+double WaveData::getMaxVol()
+{
+    return maxVol;
+}
+
 void WaveData::quantify(double dx, int level, bool enforce)
 {
     int i;
@@ -234,9 +268,9 @@ void WaveData::quantify(double dx, int level, bool enforce)
 
     if (unitTime > 0 && dataX.count() > 1)
         for (i = 1; i < dataX.count(); i++)
-            set_x(i, 1.0*qRound(dataX.at(i)/unitTime)*unitTime);
+            setX(i, 1.0*qRound(dataX.at(i)/unitTime)*unitTime);
 
     if ((1.0/volQuantiLevel) > 0 && dataY.count() > 1)
         for (i = 0; i < dataY.count(); i++)
-            set_y(i, 1.0*qRound(dataY.at(i)*volQuantiLevel)/volQuantiLevel);
+            setY(i, 1.0*qRound(dataY.at(i)*volQuantiLevel)/volQuantiLevel);
 }
