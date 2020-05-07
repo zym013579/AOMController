@@ -4,6 +4,7 @@
 
 WaveData::WaveData() :
     point(-1),
+    saveMode(EDITOR_MODE),
     realTimeQuantify(DEFAULT_REALTIME_QUANTIFY),
     volQuantiLevel(DEFAULT_VOL_QUANTIFY_LEVEL),
     unitTime(DEFAULT_UNIT_TIME),
@@ -84,7 +85,8 @@ void WaveData::copyData(WaveData *data)
     volQuantiLevel = data->getVolQuantiLevel();
     unitTime = data->getUnitTime();
     maxVol = data->getMaxVol();
-    save();
+    if (saveMode != MODU_WAVE_MODE)
+        save();
 }
 
 int WaveData::count()
@@ -158,20 +160,25 @@ void WaveData::save()
 {
     if (historyX.count() > 0 && dataX == historyX.at(point) && dataY == historyY.at(point) && unitTime == historyMDT.at(point) && volQuantiLevel == historyVQL.at(point) && maxVol == historyMaxVol.at(point))
         return;
-    while (point < historyX.count()-1)
+    if (saveMode == EDIT_WAVE_MODE)
+        point = historyX.count();
+    else
     {
-        historyX.removeLast();
-        historyY.removeLast();
-        historyMDT.removeLast();
-        historyVQL.removeLast();
-        historyMaxVol.removeLast();
+        point++;
+        while (point < historyX.count()-1)
+        {
+            historyX.removeLast();
+            historyY.removeLast();
+            historyMDT.removeLast();
+            historyVQL.removeLast();
+            historyMaxVol.removeLast();
+        }
     }
     historyX.append(dataX);
     historyY.append(dataY);
     historyMDT.append(unitTime);
     historyVQL.append(volQuantiLevel);
     historyMaxVol.append(maxVol);
-    point++;
 }
 
 void WaveData::unDo()
@@ -273,4 +280,9 @@ void WaveData::quantify(double dx, int level, bool enforce)
     if ((1.0/volQuantiLevel) > 0 && dataY.count() > 1)
         for (i = 0; i < dataY.count(); i++)
             setY(i, 1.0*qRound(dataY.at(i)*volQuantiLevel)/volQuantiLevel);
+}
+
+void WaveData::setSaveMode(int status)
+{
+    saveMode = status;
 }

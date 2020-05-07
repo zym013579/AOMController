@@ -161,7 +161,7 @@
        <enum>Qt::ClickFocus</enum>
       </property>
       <property name="title">
-       <string> </string>
+       <string/>
       </property>
       <layout class="QGridLayout" name="gridLayout_3">
        <item row="0" column="0">
@@ -249,10 +249,7 @@
   </action>
   <action name="actionSave">
    <property name="text">
-    <string>保存</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
+    <string>应用波形</string>
    </property>
   </action>
   <action name="actionExit">
@@ -318,6 +315,9 @@
    <property name="shortcut">
     <string>Ctrl+C</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionCut">
    <property name="text">
@@ -325,6 +325,9 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+X</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionPasteLast">
@@ -334,6 +337,9 @@
    <property name="shortcut">
     <string>Ctrl+V</string>
    </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
   </action>
   <action name="actionPasteInsert">
    <property name="text">
@@ -341,6 +347,9 @@
    </property>
    <property name="shortcut">
     <string>Alt+V</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="actionClear">

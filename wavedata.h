@@ -3,6 +3,10 @@
 
 #include <QList>
 
+#define MODU_WAVE_MODE 0
+#define EDIT_WAVE_MODE 1
+#define EDITOR_MODE 2
+
 /**
  * @brief 一张图表对应一个WaveData，函数均不检验输入是否正确，若出错则为程序逻辑错误
  */
@@ -150,8 +154,9 @@ public:
 
     void quantify(double dx = -1, int level = -1, bool enforce = false);
 
+    void setSaveMode(int status);
 protected:
-    int point;
+    int point, saveMode;
 
     bool realTimeQuantify;
 

@@ -1,22 +1,28 @@
 #include "windowwavedesigner.h"
 #include "ui_windowwavedesigner.h"
 
-#include <QFile>
-#include <QDir>
+#include <QFileDialog>
 
 #include "dialogparameter.h"
 #include "command.h"
 
+//以下为绘图时所用参数，大多常数为计算并尝试后获得
 #define X_VAL (ui->widgetWave->xAxis->pixelToCoord(event->pos().x()))
 #define Y_VAL (ui->widgetWave->yAxis->pixelToCoord(event->pos().y()))
 
 #define X_RANGE ((ui->widgetWave->width()-34-15)/30.0*5/ui->widgetWave->xAxis->range().size()*11/POINT_CIRCLE_SIZE)
 #define Y_RANGE ((ui->widgetWave->height()-14-24)/6.2/ui->widgetWave->yAxis->range().size()*11/POINT_CIRCLE_SIZE)
 
+//节点圆大小
 #define POINT_CIRCLE_SIZE 11
-#define DEFAULT_X_DIS_P 5
+
+//新增点时，与上一点的间距
+#define DEFAULT_X_DIS_P 5 //仅有一个点时的间距
 #define DEFAULT_X_DIS ((ui->widgetWave->graph()->dataCount()-1)?(ui->widgetWave->graph()->data()->at(ui->widgetWave->graph()->dataCount()-1)->key/(ui->widgetWave->graph()->dataCount()-1)):DEFAULT_X_DIS_P)
 
+//至此为止
+
+//写入/读取 文本框/复选框
 #define SETCHECKBOX_REALTIME_QUANTIFY(enabled) (ui->checkBoxRealTimeQuanti->setChecked(enabled))
 #define SETTEXT_VOL_QUANTIFY_LEVEL(level) (ui->lineEditVolQuantiLevel->setText(numberToStr(level)))
 #define SETTEXT_UNIT_TIME(time) (ui->lineEditMinDeltaTime->setText(numberToStr(time)))
@@ -49,7 +55,9 @@ WindowWaveDesigner::WindowWaveDesigner(QWidget *parent) :
     ui->lineEditMaxVol->setValidator(new QRegExpValidator(regExpUDouble, ui->lineEditMaxVol));
 
     emit initWaveGraph(ui->widgetWave);
+    edit->setSaveMode(EDITOR_MODE);
 
+    //以下为编辑器界面坐标图的参数设置
     ui->widgetWave->graph()->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCircle, POINT_CIRCLE_SIZE));
     ui->widgetWave->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);// QCP::iSelectPlottables  QCP::iRangeZoom
     ui->widgetWave->graph()->setSelectable(QCP::SelectionType::stDataRange);   //仅可选择一个点QCP::SelectionType::stSingleData
@@ -74,11 +82,6 @@ double checkData(double input, double min, double max)
 
 void WindowWaveDesigner::recieveSettings(WaveData *data)
 {
-    //data->getRealTimeQuantify() = data->getdata->getRealTimeQuantify()();
-    //minDeltaTime = data->getdata->getRealTimeQuantify()();
-    //volQuantiLevel = data->getVolQuantiLevel();
-    //qDebug() << numberToStr(mDT);
-    //qDebug() << numberToStr(vQL+1);
     edit->clear();
     edit->copyData(data);
     edit->quantify();
@@ -87,10 +90,11 @@ void WindowWaveDesigner::recieveSettings(WaveData *data)
     SETTEXT_VOL_QUANTIFY_LEVEL(edit->getVolQuantiLevel());
     SETTEXT_MAX_VOL(edit->getMaxVol());
     emit freshUndoRedoButton();
+    //设置坐标范围
     if (edit->count() > 1)
         ui->widgetWave->xAxis->setRange(-0.05*edit->xAt(edit->count()-1), 1.05*edit->xAt(edit->count()-1));
     else
-        ui->widgetWave->xAxis->setRange(-0.25, 20.2);  //tmp
+        ui->widgetWave->xAxis->setRange(-0.25, 20.2);
     emit choosePoint(-1);
 }
 
@@ -139,6 +143,7 @@ void WindowWaveDesigner::undoStep()
     if (edit->countUnDo() < 1)
         return;
     edit->unDo();
+    saved = false;
     emit freshUndoRedoButton();
     emit choosePoint(-1);
 }
@@ -148,6 +153,7 @@ void WindowWaveDesigner::redoStep()
     if (edit->countReDo() < 1)
         return;
     edit->reDo();
+    saved = false;
     emit freshUndoRedoButton();
     emit choosePoint(-1);
 }
@@ -193,6 +199,7 @@ void WindowWaveDesigner::choosePoint(int i, int j)
     else if (j == -1)
         ui->widgetWave->graph()->setSelection(QCPDataSelection(QCPDataRange(i, i+1)));
     else
+        //目前暂未用到此项
         ui->widgetWave->graph()->setSelection(QCPDataSelection(QCPDataRange(i, j+1)));
     emit updateGraph();
     emit updateLineEditText();
@@ -247,7 +254,10 @@ void WindowWaveDesigner::closeEvent(QCloseEvent *event)
     if (result == QMessageBox::Yes)
         emit on_pushButtonSave_clicked();
     else if (result == QMessageBox::Save)
-        ;
+    {
+        emit on_actionSaveAsFile_triggered();
+        event->ignore();
+    }
     //else if (result == QMessageBox::Discard) ;
     else if (result == QMessageBox::Cancel)
         event->ignore();
@@ -277,15 +287,12 @@ void WindowWaveDesigner::on_pushButtonSave_clicked()
 {
     emit sendWaveData(edit);
     saved = true;
-    // test部分
-    //choosePoint(ui->lineEditPointNumber->text().toInt(), ui->lineEditFrequency->text().toInt());
-    //qDebug() << ui->widgetWave->graph()->data()->at(ui->widgetWave->graph()->dataCount()-1)->key/(ui->widgetWave->graph()->dataCount()-1);
 }
 
 void WindowWaveDesigner::on_pushButtonDelete_clicked()
 {
     if (witchPointclicked() == 0)
-        MSG_WARNING("暂不支持删除起始点"); //不能删除初始点，或者删除后重排列
+        MSG_WARNING("暂不支持删除起始点"); //不能删除初始点，或者可改写为删除后重排列
     else if (witchPointclicked() != -1)
     {
         edit->del(witchPointclicked());
@@ -301,16 +308,12 @@ void WindowWaveDesigner::on_lineEditPointNumber_textEdited(const QString &arg1)
     if (arg1 != "")
     {
         if (arg1.toInt() < edit->count() && arg1.toInt() >= 0)
-        {
             emit choosePoint(arg1.toInt());
-        }
         else
             emit choosePoint(-1);
     }
     else
-    {
         emit choosePoint(-1);
-    }
 }
 
 void WindowWaveDesigner::on_lineEditPointTime_textEdited(const QString &arg1)
@@ -336,7 +339,7 @@ void WindowWaveDesigner::on_lineEditPointVoltage_textEdited(const QString &arg1)
 
 void WindowWaveDesigner::on_lineEditPointNumber_editingFinished()
 {
-    if (ui->lineEditPointNumber->text().toInt() >= edit->count()) //序号部分
+    if (ui->lineEditPointNumber->text().toInt() >= edit->count())
     {
         emit choosePoint(-1);
         MSG_WARNING("点序号超出范围");
@@ -354,7 +357,7 @@ void WindowWaveDesigner::on_lineEditPointTime_editingFinished()
         return;
     }
     int i = ui->lineEditPointNumber->text().toInt();
-    if (i == 0) //时间部分
+    if (i == 0)
     {
         if (ui->lineEditPointTime->text().toDouble() != 0)
         {
@@ -406,8 +409,6 @@ void WindowWaveDesigner::on_pushButtonApply_clicked()
         return;
     }
     edit->setRealTimeQuantify(CHECKBOX_REALTIME_QUANTIFY);
-    //edit->sevolQuantiLevel = TEXT_VOL_QUANTIFY_LEVEL;
-    //minDeltaTime = TEXT_UNIT_TIME;
     edit->quantify(TEXT_UNIT_TIME, TEXT_VOL_QUANTIFY_LEVEL);
     edit->setMaxVol(TEXT_MAX_VOL);
     emit saveStep();
@@ -415,16 +416,35 @@ void WindowWaveDesigner::on_pushButtonApply_clicked()
     emit updateGraph();
 }
 
-void WindowWaveDesigner::on_actionOpenFile_triggered()
+void WindowWaveDesigner::on_actionSaveAsFile_triggered()
 {
-    QString aFileName=QFileDialog::getOpenFileName(this,"打开波形文件",QDir::currentPath(),"文本文件(*.txt);;所有文件(*.*)");
+    QString aFileName=QFileDialog::getSaveFileName(this,"打开波形文件","","文本文件(*.txt);;所有文件(*.*)");
     if (aFileName.isEmpty())
         return;
-    if (!QFile(aFileName).exists())
-    {
-        MSG_WARNING("文件不存在");
+    freopen(aFileName.toLatin1(), "w", stdout);
+    for (int i=0; i<edit->count(); i++)
+        if (printf("   %le", edit->xAt(i))<0)
+        {
+            MSG_WARNING("文件写入失败");
+            fclose(stdout);
+            return;
+        }
+    printf("\n");
+    for (int i=0; i<edit->count(); i++)
+        if (printf("   %le", edit->getMaxVol()*edit->yAt(i))<0)
+        {
+            MSG_WARNING("文件写入失败");
+            fclose(stdout);
+            return;
+        }
+    fclose(stdout);
+}
+
+void WindowWaveDesigner::on_actionOpenFile_triggered()
+{
+    QString aFileName=QFileDialog::getOpenFileName(this,"打开波形文件","","文本文件(*.txt);;所有文件(*.*)");
+    if (aFileName.isEmpty())
         return;
-    }
     DialogParameter *wPara = new DialogParameter;
     wPara->exec();
     if (wPara->canceled)
@@ -477,13 +497,7 @@ void WindowWaveDesigner::on_actionOpenFile_triggered()
     }
     while (true)
     {
-        if (err == EOF)
-        {
-            MSG_WARNING("文件读取失败");
-            fclose(stdin);
-            return;
-        }
-        if (t == '\n')
+        if (err == EOF || t == '\n')
             break;
         if (t != ' ')
         {

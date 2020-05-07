@@ -9,16 +9,13 @@
 #include "command.h"
 #include <dbt.h>
 
+//设置信息框的内容
 #define LINEEDIT_INFO(message) (ui->lineEditConnectStatus->setText(message))
 
-//#define REALTIME_QUANTIFY (ui->checkBoxRealTimeQuanti->isChecked())
-//#define VOL_QUANTIFY_LEVEL (ui->lineEditVoltageStatus->text().toInt())
-//#define UNIT_TIME (ui->lineEditFrequencyStatus->text().toDouble())
-
+//设置各项文本框/复选框的显示内容
 #define SETCHECKBOX_REALTIME_QUANTIFY(enabled) (ui->checkBoxRealTimeQuanti->setChecked(enabled))
 #define SETTEXT_VOL_QUANTIFY_LEVEL(level) (ui->lineEditVoltageStatus->setText(numberToStr(level)))
 #define SETTEXT_UNIT_TIME(time) (ui->lineEditFrequencyStatus->setText(numberToStr(time)))
-
 #define SET_MODUTEXT_VOL_QUANTIFY_LEVEL(level) (ui->lineEditModuVolQuntiLevel->setText(numberToStr(level)))
 #define SET_MODUTEXT_UNIT_TIME(time) (ui->lineEditModuUnitTime->setText(numberToStr(time)))
 
@@ -35,16 +32,16 @@ MainWindow::MainWindow(QWidget *parent) :
     emit initWaveGraph(ui->widgetModulatingWave);
     emit initWaveGraph(ui->widgetEditingWave);
 
+    modu->setSaveMode(MODU_WAVE_MODE);
+    edit->setSaveMode(EDIT_WAVE_MODE);
+    emit freshUndoRedoButton();
+
     SETCHECKBOX_REALTIME_QUANTIFY(DEFAULT_REALTIME_QUANTIFY);
     SETTEXT_VOL_QUANTIFY_LEVEL(DEFAULT_VOL_QUANTIFY_LEVEL);
     SETTEXT_UNIT_TIME(DEFAULT_UNIT_TIME);
 
     emit closePort();
     emit searchDevice();
-
-    //connect(wDesigner, SIGNAL(sendWaveData(WaveData*)), this, SLOT(recieveWaveDataFromEditor(WaveData*)));
-    //connect(wSetting, SIGNAL(sendSettings(bool, int, double)), this, SLOT(recieveSettings(bool, int, double)));
-    //connect(m_serialPort, SIGNAL(readyRead()), this, SLOT(recieveDeviceInfo()));
 }
 
 MainWindow::~MainWindow()
@@ -53,15 +50,11 @@ MainWindow::~MainWindow()
     delete m_serialPort;
     delete modu;
     delete edit;
-    //delete wSetting;
-    //delete wAbout;
-    //delete wDesigner;
     delete ui;
 }
 
 void MainWindow::updateModuGraph()
 {
-    //SETCHECKBOX_REALTIME_QUANTIFY(modu->getRealTimeQuantify());
     SET_MODUTEXT_VOL_QUANTIFY_LEVEL(modu->getVolQuantiLevel());
     SET_MODUTEXT_UNIT_TIME(modu->getUnitTime());
     ui->widgetModulatingWave->xAxis->setRange(0, modu->xAt(modu->count()-1));
@@ -80,6 +73,7 @@ void MainWindow::updateEditGraph()
 void MainWindow::recieveWaveDataFromEditor(WaveData *data)
 {
     edit->copyData(data);
+    emit freshUndoRedoButton();
     emit updateEditGraph();
 }
 
@@ -94,7 +88,7 @@ bool MainWindow::openPort()
     }
 
     m_serialPort->setPortName(ui->comboBoxPort->currentText());
-    if(!m_serialPort->open(QIODevice::ReadWrite))//用ReadWrite 的模式尝试打开串口
+    if(!m_serialPort->open(QIODevice::ReadWrite))//用ReadWrite的模式尝试打开串口
     {
         closePort();
         MSG_WARNING("打开失败");
@@ -149,7 +143,6 @@ void MainWindow::searchDevice()
 
 bool MainWindow::recieveDeviceInfo(int timeout)
 {
-    //QByteArray recv = m_serialPort->readAll();
     if (!m_serialPort->waitForReadyRead(timeout))
     {
         closePort();
@@ -185,6 +178,10 @@ bool MainWindow::sendToDevice(QByteArray *data, int length, int timeout)
 
 bool MainWindow::sendCommandToDevice(QString command)
 {
+    /* 该部分可根据实际需要进行修改
+     *
+     * 条件语句识别命令，并作出相应操作
+     */
     if (command == "start")
     {
         QByteArray msg = SEND_START;
@@ -228,20 +225,12 @@ bool MainWindow::sendCommandToDevice(QString command)
     }
 }
 
-//void MainWindow::recieveSettings(bool rTQ, int vQL, double mDT)
-//{
-//    SET_REALTIME_QUANTIFY(rTQ);
-//    SET_VOL_QUANTIFY_LEVEL(vQL);
-//    SET_MIN_DELTA_TIME(mDT);
-//}
-
 void MainWindow::on_pushButtonEditWave_clicked()
 {
     WindowWaveDesigner *wDesigner = new WindowWaveDesigner(this);
     emit sendSettings(edit);
-    //wDesigner->recieveWaveData(edit);
+    //准备接收波形
     connect(wDesigner, SIGNAL(sendWaveData(WaveData*)), this, SLOT(recieveWaveDataFromEditor(WaveData*)));
-    //connect(wDesigner, SIGNAL(sendSettings(bool, int, double)), this, SLOT(recieveSettings(bool, int, double)));
     wDesigner->show();
 }
 
@@ -255,13 +244,23 @@ void MainWindow::on_pushButtonStart_clicked()
 {
     if (ui->pushButtonStart->text() == "开始调制")
     {
-        LINEEDIT_INFO("已开始调制");
-        ui->pushButtonStart->setText("暂停调制");
+        if (sendCommandToDevice("start"))
+        {
+            LINEEDIT_INFO("已开始调制");
+            ui->pushButtonStart->setText("暂停调制");
+        }
+        else
+            LINEEDIT_INFO("开始失败");
     }
     else
     {
-        LINEEDIT_INFO("已暂停调制");
-        ui->pushButtonStart->setText("开始调制");
+        if (sendCommandToDevice("pause"))
+        {
+            LINEEDIT_INFO("已暂停调制");
+            ui->pushButtonStart->setText("开始调制");
+        }
+        else
+            LINEEDIT_INFO("暂停失败");
     }
 }
 
@@ -272,6 +271,14 @@ void MainWindow::on_pushButtonSend_clicked()
         MSG_WARNING("点数量过少");
         return;
     }
+
+    /* 该部分可根据实际需求修改
+     *
+     * 该部分将edit中的波形信息转换后发送给下位机
+     *
+     * 目前QByteArray上限为9999字符，超过部分分多次发送
+     * 可能会存在接收问题
+     */
 
     edit->quantify(edit->getUnitTime(), edit->getVolQuantiLevel(), true); //量化数据
     edit->save();
@@ -287,12 +294,6 @@ void MainWindow::on_pushButtonSend_clicked()
     {
         int y = qRound(edit->yAt(i)*(MAX_VOL_QUANTIFY_LEVEL*1.0)/(edit->getVolQuantiLevel()*1.0))*edit->getVolQuantiLevel();
         y = ((y/128)*256 + (y%128)) | 0x8080;
-        //sendInfo.append(y);
-//        t1.remove(1);
-//        t1 = QString::number(((t1.toInt(Q_NULLPTR, 16)<<2)+t2.toInt()/8) | 8, 16);
-//        t2 = QString::number(t2.toInt(Q_NULLPTR, 16) | 8);
-//        sendInfo.append(t1);
-//        sendInfo.append(t2);
 
         int dx = trunc((edit->xAt(i+1)-edit->xAt(i))/edit->getUnitTime());
 
@@ -337,10 +338,6 @@ void MainWindow::on_pushButtonSend_clicked()
     }
     sendInfo->append('}');
 
-    //QString t;
-    //for (int i = 0; i < sendInfoAll.count(); i++)
-    //    t.append(sendInfoAll[i]->to);
-
     bool isOk = true;
     for (int i = 0; i <= num; i++)
     {
@@ -351,6 +348,7 @@ void MainWindow::on_pushButtonSend_clicked()
         }
         if (!sendToDevice(sendInfoAll[i]))
             isOk = false;
+        Sleep(1200);    //传输延迟暂时解决办法
         delete sendInfoAll[i];
     }
 
@@ -383,18 +381,8 @@ void MainWindow::on_pushButtonConnect_clicked()
         }
     }
     else
-    {
         emit closePort();
-    }
 }
-
-//void MainWindow::on_actionSetting_triggered()
-//{
-//    DialogSetting *wSetting = new DialogSetting(this);
-//    emit sendSettings(REALTIME_QUANTIFY, VOL_QUANTIFY_LEVEL, MIN_DELTA_TIME);
-//    connect(wSetting, SIGNAL(sendSettings(bool, int, double)), this, SLOT(recieveSettings(bool, int, double)));
-//    wSetting->exec();
-//}
 
 bool MainWindow::nativeEvent(const QByteArray &eventType, void *message, long *result)
 {
@@ -424,7 +412,7 @@ void initWaveGraph(QCustomPlot *target)
     target->addGraph();
     target->yAxis->setRange(-0.2, 1.2);
     target->xAxis->setRange(-0.2, 20.2);
-    target->graph()->setLineStyle(QCPGraph::LineStyle::lsStepLeft); //方波图形
+    target->graph()->setLineStyle(QCPGraph::LineStyle::lsStepLeft); //方波图形，可根据实际修改
     target->replot();
 }
 
@@ -450,4 +438,35 @@ QString numberToStr(double num)
     if (t.indexOf('.') == t.count()-1)
         t.remove(t.count()-1, 1);
     return t;
+}
+
+void MainWindow::on_actionPreWave_triggered()
+{
+    if (edit->countUnDo() < 1)
+        return;
+    edit->unDo();
+    emit freshUndoRedoButton();
+    emit updateEditGraph();
+}
+
+void MainWindow::freshUndoRedoButton()
+{
+    if (edit->countUnDo() > 0)
+        ui->actionPreWave->setEnabled(true);
+    else
+        ui->actionPreWave->setEnabled(false);
+
+    if (edit->countReDo() > 0)
+        ui->actionNextWave->setEnabled(true);
+    else
+        ui->actionNextWave->setEnabled(false);
+}
+
+void MainWindow::on_actionNextWave_triggered()
+{
+    if (edit->countReDo() < 1)
+        return;
+    edit->reDo();
+    emit freshUndoRedoButton();
+    emit updateEditGraph();
 }
